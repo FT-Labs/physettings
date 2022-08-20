@@ -9,6 +9,12 @@ import (
 )
 
 const logo = `
+      _____ _____ _
+     |  ___|_   _| |
+     | |_    | | | |
+     |  _|   | | | |___
+     |_|     |_| |_____|
+
 #######################+=###-
  .=+++++++++++++++=*###=+###.
   +#############==###-*##+
@@ -67,5 +73,5 @@ func Cover(nextSlide func()) (title string, content tview.Primitive) {
 			AddItem(tview.NewBox(), 0, 1, false), logoHeight, 1, true).
 		AddItem(frame, 0, 10, false)
 
-	return "Start", flex
+	return "INFO", flex
 }

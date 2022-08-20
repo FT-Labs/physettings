@@ -8,13 +8,6 @@ import (
 	"github.com/rivo/tview"
 )
 
-var appW, appH int
-
-func SetSize(w, h int) {
-    appW = w
-    appH = h
-}
-
 func Keys(nextSlide func()) (title string, content tview.Primitive){
     out, err := exec.Command("manfilter", "dwm").Output()
 
@@ -62,8 +55,6 @@ func Keys(nextSlide func()) (title string, content tview.Primitive){
 			word = (word + 1) % len(keys)
 		}
 	}
-    _, _, w, h := table.GetRect()
-    table.SetRect(appW - w/2, 0, w, h)
 	table.Select(0, 0).SetFixed(1, 1).SetDoneFunc(func(key tcell.Key) {
 		if key == tcell.KeyEnter {
 			table.SetSelectable(true, true)
@@ -77,8 +68,9 @@ func Keys(nextSlide func()) (title string, content tview.Primitive){
         SetDirection(tview.FlexColumn).
         AddItem(tview.NewBox(), 0, 1, false).
         AddItem(tview.NewFlex().
-            SetDirection(tview.FlexRow).
-            AddItem(table, 0, 1, true), 0, 6, true)
+            AddItem(table, 0, 1, true), maxLen + 20, 2, true).
+        AddItem(tview.NewBox(), 0, 1, false)
+
 
     return "KEY SHEET", flex
 }

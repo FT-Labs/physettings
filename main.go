@@ -15,6 +15,7 @@ type Slide func(nextSlide func()) (title string, content tview.Primitive)
 var app = tview.NewApplication()
 
 func main() {
+    FetchAttributes()
     slides := []Slide{
         Cover,
         Keys,
