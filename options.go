@@ -26,29 +26,32 @@ func Options(nextSlide func()) (title string, content tview.Primitive){
             SetLabel("Select an option (hit Enter): ").
             SetOptions(RofiColors, selected)
             dropdown.SetCurrentOption(0)
+            dropdown.SetTitleAlign(tview.AlignCenter)
 
-            flex := tview.NewFlex().
+            flex := tview.NewGrid().SetBorders(true).AddItem(tview.NewFlex().
+                SetDirection(tview.FlexRow).
                 AddItem(tview.NewBox(), 0, 1, false).
                 AddItem(tview.NewFlex().
                     SetDirection(tview.FlexColumn).
                     AddItem(tview.NewBox(), 0, 1, false).
-                    AddItem(dropdown, 0, 2, true).
+                    AddItem(dropdown, dropdown.GetFieldWidth() + len(dropdown.GetLabel()), dropdown.GetFieldWidth() + len(dropdown.GetLabel()), true).
                     AddItem(tview.NewBox(), 0, 1, false), 0, 2, true).
-                AddItem(tview.NewBox(), 0, 1, false)
+                AddItem(tview.NewBox(), 0, 1, false), 0, 0, 1, 1, 0, 0, true)
             return flex
         }
 	}
 
 
-	grid := tview.NewGrid().
-		SetRows(-1, -1, -1, -7, -1).
-		SetColumns(-1, -8, -1).
-        SetBorders(true).
-        AddItem(newPrimitive(""), 2, 1, 3, 1, 0, 0, true)
-
-    grid.SetBorders(false)
-    grid.AddItem(newPrimitive("[::b]SET OPTIONS 漣"), 1, 0, 1, 3, 0, 0, true).
-		AddItem(newPrimitive("Enter to select (type to search, or use arrow keys)"), 5, 0, 1, 3, 0, 0, false)
+	grid := tview.NewFlex().
+        SetDirection(tview.FlexRow).
+        AddItem(tview.NewBox(), 0, 2, false).
+        AddItem(newPrimitive("[::b]SET OPTIONS 漣"), 0, 2, false).
+        AddItem(tview.NewFlex().
+            SetDirection(tview.FlexColumn).
+            AddItem(tview.NewBox(), 0, 3, false).
+            AddItem(newPrimitive(""), 0, 9, true).
+            AddItem(tview.NewBox(), 0, 3, false), 0, 16, true).
+		AddItem(newPrimitive("Enter to select (type to search, or use arrow keys)"), 0, 2, false)
 
 	modal := tview.NewModal().
 		SetText("Resize the window to see how the grid layout adapts").
