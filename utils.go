@@ -12,7 +12,10 @@ import (
 )
 
 var settingsPath string
+// GLOBAL VARIABLES
 var Attrs map[string]string
+var RofiColors []string
+var RofiTypes []string
 
 func ChangeAttribute(attribute, value string) {
     s := fmt.Sprintf("sed -i '/%s/c\\%s=%s' %s", attribute, attribute, value, settingsPath)
@@ -40,7 +43,7 @@ func SetAttribute(attribute, value string) error {
     return errors.New("Can't get attribute")
 }
 
-func FetchRofiColors() (string, []string) {
+func FetchRofiColors() []string {
     var s string
     const path string = "/usr/share/phyos/config/rofi/colors"
     cmd := "file ~/.config/rofi/colors.rasi | tr \"/.\" \" \" | awk '{print $(NF-1)}'"
@@ -49,12 +52,18 @@ func FetchRofiColors() (string, []string) {
     if err != nil {
         s = "None"
     } else {
-        s = string(out)
+        s = strings.Trim(string(out)," \n")
     }
     cmd = "ls /usr/share/phyos/config/rofi/colors/ | sed -e 's/\\.rasi$//'"
     out, _ = exec.Command("/bin/bash", "-c", cmd).Output()
     colors := strings.Split(string(out), "\n")
-    return s, colors[:len(colors) - 1]
+    for i:= range colors {
+        if colors[i] == s {
+            colors[0], colors[i] = colors[i], colors[0]
+            break
+        }
+    }
+    return colors[:len(colors) - 1]
 }
 
 func SetRofiColor(c string) {
@@ -62,7 +71,7 @@ func SetRofiColor(c string) {
     exec.Command("/bin/bash", "-c", cmd).Start()
 }
 
-func FetchRofiType() ([]string) {
+func FetchRofiTypes() ([]string) {
     f, _ := ioutil.ReadDir("/usr/share/phyos/config/rofi/powermenu")
     var types []string
     for i := 1; i < len(f); i++ {
@@ -103,4 +112,6 @@ func FetchAttributes() {
     if err := sc.Err(); err != nil {
         panic(err)
     }
+    RofiTypes = FetchRofiTypes()
+    RofiColors = FetchRofiColors()
 }

@@ -32,7 +32,7 @@ const logo = `
 const (
 	subtitle   = `phyOS - Settings & Usage Guide`
     navigation = `[1 .. 9]: Choose page    Ctrl-N: Next page    Ctrl-P: Previous page    Ctrl-C: Exit`
-	mouse      = `(or use your mouse)`
+	mouse      = `Or use mouse`
 )
 
 

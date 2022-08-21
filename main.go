@@ -15,10 +15,12 @@ type Slide func(nextSlide func()) (title string, content tview.Primitive)
 var app = tview.NewApplication()
 
 func main() {
+    // Get global attributes
     FetchAttributes()
     slides := []Slide{
         Cover,
         Keys,
+        Options,
     }
 
     pages := tview.NewPages()
