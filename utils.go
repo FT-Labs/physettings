@@ -11,11 +11,17 @@ import (
 	"time"
 )
 
+const POWERMENU_TYPE     = "POWERMENU_TYPE"
+const POWERMENU_STYLE    = "POWERMENU_STYLE"
+const PICOM_EXPERIMENTAL = "PICOM_EXPERIMENTAL"
+const ROFI_COLOR         = "ROFI_COLOR"
+
 var settingsPath string
 // GLOBAL VARIABLES
-var Attrs map[string]string
+var Attrs      map[string]string
 var RofiColors []string
-var RofiTypes []string
+var PowerMenuTypes  []string
+var PowerMenuStyles []string
 
 func ChangeAttribute(attribute, value string) {
     s := fmt.Sprintf("sed -i '/%s/c\\%s=%s' %s", attribute, attribute, value, settingsPath)
@@ -112,6 +118,14 @@ func FetchAttributes() {
     if err := sc.Err(); err != nil {
         panic(err)
     }
-    RofiTypes = FetchRofiTypes()
+    PowerMenuTypes = FetchRofiTypes()
     RofiColors = FetchRofiColors()
+    PowerMenuStyles = append(PowerMenuStyles, "style-1", "style-2", "style-3", "style-4", "style-5")
+
+    for i := range PowerMenuStyles {
+        if PowerMenuStyles[i] == Attrs[POWERMENU_STYLE] {
+            PowerMenuStyles[0], PowerMenuStyles[i] = PowerMenuStyles[i], PowerMenuStyles[0]
+            break
+        }
+    }
 }

@@ -1,9 +1,8 @@
 package main
 
 import (
+	"os/exec"
 	"strings"
-    "os/exec"
-
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
 )
@@ -22,12 +21,13 @@ func Keys(nextSlide func()) (title string, content tview.Primitive){
 	cols, rows := 2, len(keys)/2+1
     table.SetFixed(cols, rows)
     table.SetEvaluateAllRows(true)
-    table.SetBorderAttributes(tcell.AttrBold)
 	word := 0
-    maxLen := 0
-    for i := 0; i < len(keys) - 1; i+=2 {
-        if len(keys[i]) + len(keys[i+1]) > maxLen {
-            maxLen = len(keys[i]) + len(keys[i+1])
+    maxC1, maxC2 := 0, 0
+    for i := range keys {
+        if i%2 == 0 && maxC1 < len(keys[i]) {
+            maxC1 = len(keys[i])
+        } else if maxC2 < len(keys[i]) {
+            maxC2 = len(keys[i])
         }
     }
     color := tcell.ColorBlue
@@ -51,6 +51,7 @@ func Keys(nextSlide func()) (title string, content tview.Primitive){
 			table.SetCell(r, c,
 				tview.NewTableCell(keys[word]).
 					SetTextColor(color).
+                    SetExpansion(2).
 					SetAlign(tview.AlignCenter))
 			word = (word + 1) % len(keys)
 		}
@@ -68,9 +69,8 @@ func Keys(nextSlide func()) (title string, content tview.Primitive){
         SetDirection(tview.FlexColumn).
         AddItem(tview.NewBox(), 0, 1, false).
         AddItem(tview.NewFlex().
-            AddItem(table, 0, 1, true), maxLen + 20, 2, true).
+            AddItem(table, 0, 1, true), maxC1 + maxC2 + 3, 2, true).
         AddItem(tview.NewBox(), 0, 1, false)
-
 
     return "KEY SHEET", flex
 }
