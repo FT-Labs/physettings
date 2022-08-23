@@ -7,15 +7,19 @@ import (
 
 var pages *tview.Pages
 var confirm *tview.Modal
+var lastFocus tview.Primitive
+var lastFocusIndex int
+var o1, o2 *tview.Form
 
-func selRofiColor(selection string, _ int) {
+func dropSelRofiColor(selection string, i int) {
     SetRofiColor(selection)
     confirm.SetText("Rofi colorscheme changed to: " + selection).
             SetBackgroundColor(tcell.Color59)
+    lastFocusIndex = i
     pages.ShowPage("confirm")
 }
 
-func selPowerMenuType(selection string, _ int) {
+func dropSelPowerMenuType(selection string, i int) {
     err := SetAttribute(POWERMENU_TYPE, selection)
     if err != nil {
         confirm.SetText("Failed to set powermenu type").
@@ -25,10 +29,11 @@ func selPowerMenuType(selection string, _ int) {
         confirm.SetText("Powermenu type changed to: " + selection).
                 SetBackgroundColor(tcell.Color59)
     }
+    lastFocusIndex = i
     pages.ShowPage("confirm")
 }
 
-func selPowerMenuStyle(selection string, _ int) {
+func dropSelPowerMenuStyle(selection string, i int) {
     err := SetAttribute(POWERMENU_STYLE, selection)
     if err != nil {
         confirm.SetText("Failed to set powermenu style").
@@ -38,33 +43,66 @@ func selPowerMenuStyle(selection string, _ int) {
         confirm.SetText("Powermenu style changed to: " + selection).
                 SetBackgroundColor(tcell.Color59)
     }
+    lastFocusIndex = i
     pages.ShowPage("confirm")
+}
+
+func buttonSelGrubTheme() {
+    const c = "pOS-grub-choose-theme"
+    err := RunScript(c)
+    if err != nil {
+        confirm.SetText(err.Error()).
+                SetBackgroundColor(tcell.Color59).
+                SetTextColor(tcell.ColorRed)
+    } else {
+        confirm.SetText("Succesfully changed grub theme").
+                SetBackgroundColor(tcell.Color59)
+    }
+    pages.ShowPage("confirm")
+}
+
+func buttonSelSddmTheme() {
+    const c = "pOS-sddm-choose-theme"
+    RunScript(c)
+}
+
+func buttonSelMakeBar() {
+    const c = "pOS-make-bar"
+    RunScript(c)
 }
 
 func makeDropdown(opt string) (l string, o []string, idx int, sel func(o string, oindex int)) {
     if opt == ROFI_COLOR {
-        return ROFI_COLOR + ":    ",
+        return ROFI_COLOR + " : ",
                     RofiColors,
                     0,
-                    selRofiColor
+                    dropSelRofiColor
     } else if opt == POWERMENU_STYLE {
-        return       POWERMENU_STYLE + ":    ",
+        return       POWERMENU_STYLE + " : ",
                      PowerMenuStyles,
                      0,
-                     selPowerMenuStyle
+                     dropSelPowerMenuStyle
     }// else if opt == POWERMENU_TYPE {
-        return       POWERMENU_TYPE + "    :",
-                     PowerMenuTypes,
-                     0,
-                     selPowerMenuType
+    return POWERMENU_TYPE + " : ",
+           PowerMenuTypes,
+           0,
+           dropSelPowerMenuType
 }
 
 func makeOptionsForm() *tview.Form {
-    f := tview.NewForm().
-        AddDropDown(makeDropdown(ROFI_COLOR)).
-        AddDropDown(makeDropdown(POWERMENU_TYPE)).
-        AddDropDown(makeDropdown(POWERMENU_STYLE))
-    return f
+    return tview.NewForm().
+               AddDropDown(makeDropdown(ROFI_COLOR)).
+               AddDropDown(makeDropdown(POWERMENU_TYPE)).
+               AddDropDown(makeDropdown(POWERMENU_STYLE))
+}
+
+func makeScriptsForm() *tview.Form {
+    return tview.NewForm().
+               SetHorizontal(true).
+               SetButtonsAlign(tview.AlignCenter).
+               AddButton("SET GRUB THEME", buttonSelGrubTheme).
+               AddButton("SET SDDM THEME", buttonSelSddmTheme).
+               AddButton("MAKE STATUSBAR", buttonSelMakeBar)
 }
 
 
@@ -73,6 +111,10 @@ func Options(nextSlide func()) (title string, content tview.Primitive){
 	confirm = tview.NewModal().
 		AddButtons([]string{"OK"}).SetDoneFunc(func(buttonIndex int, buttonLabel string) {
 		pages.HidePage("confirm")
+        app.SetFocus(lastFocus)
+        f, ok := lastFocus.(*tview.Form); if ok {
+            f.SetFocus(lastFocusIndex)
+        }
 	})
 
     pages = tview.NewPages()
@@ -82,38 +124,38 @@ func Options(nextSlide func()) (title string, content tview.Primitive){
                 SetBorders(0, 0, 0, 0, 0, 0).
                 AddText(text, true, tview.AlignCenter, tcell.ColorWhite)
         } else {
+            o1 = makeOptionsForm()
+            o2 = makeScriptsForm()
 
-            grid := tview.NewGrid().
-                SetBordersColor(tcell.Color33).
-                SetBorders(true).
-                AddItem(tview.NewFlex().
-                SetDirection(tview.FlexRow).
-                AddItem(tview.NewBox(), 0, 1, false).
-                AddItem(tview.NewFlex().
-                    SetDirection(tview.FlexColumn).
-                    AddItem(makeOptionsForm(), 0, 6, true).
-                //     AddItem(tview.NewBox(), 0, 1, false).
-                //     AddItem(&dropSlice[0],
-                //                  dropSlice[0].GetFieldWidth() + len(dropSlice[0].GetLabel()),
-                //                  dropSlice[0].GetFieldWidth() + len(dropSlice[0].GetLabel()), true).
-                //     AddItem(tview.NewBox(), 0, 1, false), 0, 4, true).
-                // AddItem(tview.NewFlex().
-                //     SetDirection(tview.FlexColumn).
-                //     AddItem(tview.NewBox(), 0, 1, false).
-                //     AddItem(&dropSlice[1],
-                //                  dropSlice[0].GetFieldWidth() + len(dropSlice[0].GetLabel()),
-                //                  dropSlice[0].GetFieldWidth() + len(dropSlice[0].GetLabel()), true).
-                //     AddItem(tview.NewBox(), 0, 1, false), 0, 4, true).
-                // AddItem(tview.NewFlex().
-                //     SetDirection(tview.FlexColumn).
-                //     AddItem(tview.NewBox(), 0, 1, false).
-                //     AddItem(&dropSlice[2],
-                //                  dropSlice[0].GetFieldWidth() + len(dropSlice[0].GetLabel()),
-                //                  dropSlice[0].GetFieldWidth() + len(dropSlice[0].GetLabel()), true).
-                    AddItem(tview.NewBox(), 0, 1, false), 0, 4, true).
-                AddItem(tview.NewBox(), 0, 1, false), 0, 0, 1, 1, 0, 0, true)
+            o1.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+                if event.Key() == tcell.KeyBacktab {
+                    app.SetFocus(o2)
+                    lastFocus = app.GetFocus()
+                    return nil
+                }
+                return event
+            })
 
-            return grid
+            o2.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+                if event.Key() == tcell.KeyBacktab {
+                    app.SetFocus(o1)
+                    lastFocus = app.GetFocus()
+                    return nil
+                }
+                return event
+            })
+
+            return tview.NewGrid().
+                       SetBordersColor(tcell.Color33).
+                       SetBorders(true).
+                       AddItem(tview.NewFlex().
+                       SetDirection(tview.FlexRow).
+                       AddItem(tview.NewBox(), 0, 1, false).
+                       AddItem(tview.NewFlex().
+                           SetDirection(tview.FlexColumn).
+                           AddItem(o1, 0, 1, true).
+                           AddItem(o2, 0, 1, true), 0, 6, true).
+                       AddItem(tview.NewBox(), 0, 1, false), 0, 0, 1, 1, 0, 0, true)
         }
 	}
 

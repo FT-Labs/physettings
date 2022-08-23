@@ -40,14 +40,18 @@ func ChangeAttribute(attribute, value string) {
     }
 }
 
-func SetAttribute(attribute, value string) error {
-    if key, ok := Attrs[attribute]; ok {
-        ChangeAttribute(attribute, value)
-        Attrs[key] = attribute
-        return nil
+func FetchPowerMenuTypes() ([]string) {
+    f, _ := ioutil.ReadDir("/usr/share/phyos/config/rofi/powermenu")
+    types := []string{"Default"}
+    for i := 1; i < len(f); i++ {
+        types = append(types, fmt.Sprintf("type-%d", i))
+        if types[i] == Attrs[POWERMENU_TYPE] {
+            types[0], types[i] = types[i], types[0]
+        }
     }
-    return errors.New("Can't get attribute")
+    return types
 }
+
 
 func FetchRofiColors() []string {
     var s string
@@ -72,18 +76,29 @@ func FetchRofiColors() []string {
     return colors[:len(colors) - 1]
 }
 
+func SetAttribute(attribute, value string) error {
+    if key, ok := Attrs[attribute]; ok {
+        ChangeAttribute(attribute, value)
+        Attrs[key] = attribute
+        return nil
+    }
+    return errors.New("Can't get attribute")
+}
+
 func SetRofiColor(c string) {
     cmd := fmt.Sprintf("ln -sf /usr/share/phyos/config/rofi/colors/%s.rasi ~/.config/rofi/colors.rasi", c)
     exec.Command("/bin/bash", "-c", cmd).Start()
 }
 
-func FetchRofiTypes() ([]string) {
-    f, _ := ioutil.ReadDir("/usr/share/phyos/config/rofi/powermenu")
-    var types []string
-    for i := 1; i < len(f); i++ {
-        types = append(types, fmt.Sprintf("type-%d", i))
+func RunScript(c string) error {
+    const TERM_TITLE = "physet-run"
+    const GEOM       = "80x30"
+    err := exec.Command("st", "-n", TERM_TITLE, "-g", GEOM, "-e", c).Run()
+
+    if err != nil {
+        return err
     }
-    return types
+    return nil
 }
 
 func FetchAttributes() {
@@ -118,7 +133,7 @@ func FetchAttributes() {
     if err := sc.Err(); err != nil {
         panic(err)
     }
-    PowerMenuTypes = FetchRofiTypes()
+    PowerMenuTypes = FetchPowerMenuTypes()
     RofiColors = FetchRofiColors()
     PowerMenuStyles = append(PowerMenuStyles, "style-1", "style-2", "style-3", "style-4", "style-5")
 

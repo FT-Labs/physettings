@@ -71,8 +71,9 @@ func main() {
 		} else if event.Key() == tcell.KeyCtrlP {
 			previousSlide()
 			return nil
-		} else if event.Rune() >= '1' && event.Rune() <= '9' {
-            chooseSlide(int(event.Rune() - '1'))
+		} else if event.Key() >= tcell.KeyF1 && event.Key() <= tcell.KeyF9  {
+            i := event.Key() - tcell.KeyF1
+            chooseSlide(int(i))
             return nil
         }
 		return event
