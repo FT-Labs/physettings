@@ -112,9 +112,6 @@ func Options(nextSlide func()) (title string, content tview.Primitive){
 		AddButtons([]string{"OK"}).SetDoneFunc(func(buttonIndex int, buttonLabel string) {
 		pages.HidePage("confirm")
         app.SetFocus(lastFocus)
-        f, ok := lastFocus.(*tview.Form); if ok {
-            f.SetFocus(lastFocusIndex)
-        }
 	})
 
     pages = tview.NewPages()
@@ -136,6 +133,10 @@ func Options(nextSlide func()) (title string, content tview.Primitive){
                 return event
             })
 
+            o1.SetFocusFunc(func() {
+                o1.SetFocus(lastFocusIndex)
+            })
+
             o2.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
                 if event.Key() == tcell.KeyBacktab {
                     app.SetFocus(o1)
@@ -145,6 +146,11 @@ func Options(nextSlide func()) (title string, content tview.Primitive){
                 return event
             })
 
+            o2.SetFocusFunc(func() {
+                o2.SetFocus(lastFocusIndex)
+            })
+
+
             return tview.NewGrid().
                        SetBordersColor(tcell.Color33).
                        SetBorders(true).
@@ -153,7 +159,7 @@ func Options(nextSlide func()) (title string, content tview.Primitive){
                        AddItem(tview.NewBox(), 0, 1, false).
                        AddItem(tview.NewFlex().
                            SetDirection(tview.FlexColumn).
-                           AddItem(o1, 0, 1, true).
+                           AddItem(o1, 0, 3, true).
                            AddItem(o2, 0, 1, true), 0, 6, true).
                        AddItem(tview.NewBox(), 0, 1, false), 0, 0, 1, 1, 0, 0, true)
         }
@@ -171,7 +177,7 @@ func Options(nextSlide func()) (title string, content tview.Primitive){
 		AddItem(newPrimitive("Enter to select (type to search, or use arrow keys)"), 0, 2, false)
 
 	pages.AddPage("flex", flex, true, true).
-		AddPage("confirm", confirm, false, false)
+		AddPage("confirm", confirm, true, false)
 
     return "OPTIONS", pages
 }
