@@ -6,21 +6,25 @@ import (
 
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
+    "github.com/FT-Labs/PhySettings/utils"
+    c "github.com/FT-Labs/PhySettings/cover"
+    k "github.com/FT-Labs/PhySettings/keys"
+    o "github.com/FT-Labs/PhySettings/options"
 )
 
 
-type Slide func(nextSlide func()) (title string, content tview.Primitive)
+type Slide func(app *tview.Application, nextSlide func()) (title string, content tview.Primitive)
 
 
 var app = tview.NewApplication()
 
 func main() {
     // Get global attributes
-    FetchAttributes()
+    utils.FetchAttributes()
     slides := []Slide{
-        Cover,
-        Keys,
-        Options,
+        c.Cover,
+        k.Keys,
+        o.Options,
     }
 
     pages := tview.NewPages()
@@ -52,7 +56,7 @@ func main() {
     }
 
     for index, slide := range slides {
-        title, primitive := slide(nextSlide)
+        title, primitive := slide(app, nextSlide)
         pages.AddPage(strconv.Itoa(index), primitive, true, index == 0)
         fmt.Fprintf(info, `%d ["%d"][darkcyan]%s[white][""]  `, index+1, index, title)
     }
