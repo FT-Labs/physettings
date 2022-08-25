@@ -12,10 +12,13 @@ import (
 )
 
 const(
-    POWERMENU_TYPE     = "POWERMENU_TYPE"
-    POWERMENU_STYLE    = "POWERMENU_STYLE"
-    PICOM_EXPERIMENTAL = "PICOM_EXPERIMENTAL"
-    ROFI_COLOR         = "ROFI_COLOR"
+    POWERMENU_TYPE        = "POWERMENU_TYPE"
+    POWERMENU_STYLE       = "POWERMENU_STYLE"
+    PICOM_EXPERIMENTAL    = "PICOM_EXPERIMENTAL"
+    ROFI_COLOR            = "ROFI_COLOR"
+    POS_MAKE_BAR          = "pOS-make-bar"
+    POS_GRUB_CHOOSE_THEME = "pOS-grub-choose-theme"
+    POS_SDDM_CHOOSE_THEME = "pOS-sddm-choose-theme"
 )
 
 var settingsPath string
@@ -24,6 +27,7 @@ var Attrs      map[string]string
 var RofiColors []string
 var PowerMenuTypes  []string
 var PowerMenuStyles []string
+var ScriptInfo map[string]string
 
 func ChangeAttribute(attribute, value string) {
     s := fmt.Sprintf("sed -i '/%s/c\\%s=%s' %s", attribute, attribute, value, settingsPath)
@@ -42,7 +46,7 @@ func ChangeAttribute(attribute, value string) {
     }
 }
 
-func FetchPowerMenuTypes() ([]string) {
+func fetchPowerMenuTypes() ([]string) {
     f, _ := ioutil.ReadDir("/usr/share/phyos/config/rofi/powermenu")
     types := []string{"Default"}
     for i := 1; i < len(f); i++ {
@@ -55,7 +59,7 @@ func FetchPowerMenuTypes() ([]string) {
 }
 
 
-func FetchRofiColors() []string {
+func fetchRofiColors() []string {
     var s string
     const path string = "/usr/share/phyos/config/rofi/colors"
     cmd := "file ~/.config/rofi/colors.rasi | tr \"/.\" \" \" | awk '{print $(NF-1)}'"
@@ -76,6 +80,22 @@ func FetchRofiColors() []string {
         }
     }
     return colors[:len(colors) - 1]
+}
+
+func fetchScriptInfo() map[string]string {
+    m := make(map[string]string)
+    out, err := exec.Command("manfilter", "phyos", "CUSTOMIZATION", "SCRIPTS").Output()
+
+    if err != nil {
+        panic("Can't fetch script data")
+    }
+
+    scriptInfo := strings.Split(string(out), ";")
+
+    for i := 0; i < len(scriptInfo) - 1; i += 2 {
+        m[scriptInfo[i]] = scriptInfo[i + 1]
+    }
+    return m
 }
 
 func SetAttribute(attribute, value string) error {
@@ -135,9 +155,10 @@ func FetchAttributes() {
     if err := sc.Err(); err != nil {
         panic(err)
     }
-    PowerMenuTypes = FetchPowerMenuTypes()
-    RofiColors = FetchRofiColors()
+    PowerMenuTypes = fetchPowerMenuTypes()
+    RofiColors = fetchRofiColors()
     PowerMenuStyles = append(PowerMenuStyles, "style-1", "style-2", "style-3", "style-4", "style-5")
+    ScriptInfo = fetchScriptInfo()
 
     for i := range PowerMenuStyles {
         if PowerMenuStyles[i] == Attrs[POWERMENU_STYLE] {

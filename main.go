@@ -6,10 +6,10 @@ import (
 
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
-    "github.com/FT-Labs/PhySettings/utils"
-    c "github.com/FT-Labs/PhySettings/cover"
-    k "github.com/FT-Labs/PhySettings/keys"
-    o "github.com/FT-Labs/PhySettings/options"
+    "github.com/FT-Labs/physettings/utils"
+    c "github.com/FT-Labs/physettings/cover"
+    k "github.com/FT-Labs/physettings/keys"
+    o "github.com/FT-Labs/physettings/options"
 )
 
 

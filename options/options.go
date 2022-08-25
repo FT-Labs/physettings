@@ -1,13 +1,18 @@
 package options
 
 import (
+	"fmt"
+
+	utils "github.com/FT-Labs/physettings/utils"
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
-    utils "github.com/FT-Labs/PhySettings/utils"
 )
 
+var app *tview.Application
 var pages *tview.Pages
 var confirm *tview.Modal
+var scriptInfo *tview.TextView
+
 var lastFocus tview.Primitive
 var lastFocusIndex int
 var o1, o2 *tview.Form
@@ -49,8 +54,7 @@ func dropSelPowerMenuStyle(selection string, i int) {
 }
 
 func buttonSelGrubTheme() {
-    const c = "pOS-grub-choose-theme"
-    err := utils.RunScript(c)
+    err := utils.RunScript(utils.POS_GRUB_CHOOSE_THEME)
     if err != nil {
         confirm.SetText(err.Error()).
                 SetBackgroundColor(tcell.Color59).
@@ -64,8 +68,7 @@ func buttonSelGrubTheme() {
 }
 
 func buttonSelSddmTheme() {
-    const c = "pOS-sddm-choose-theme"
-    err := utils.RunScript(c)
+    err := utils.RunScript(utils.POS_SDDM_CHOOSE_THEME)
     if err != nil {
         confirm.SetText(err.Error()).
                 SetBackgroundColor(tcell.Color59).
@@ -79,8 +82,7 @@ func buttonSelSddmTheme() {
 }
 
 func buttonSelMakeBar() {
-    const c = "pOS-make-bar"
-    err := utils.RunScript(c)
+    err := utils.RunScript(utils.POS_MAKE_BAR)
     if err != nil {
         confirm.SetText(err.Error()).
                 SetBackgroundColor(tcell.Color59).
@@ -111,12 +113,22 @@ func makeDropdown(opt string) (l string, o []string, idx int, sel func(o string,
            dropSelPowerMenuType
 }
 
+func makeScriptsInfoTextView() {
+    scriptInfo = tview.NewTextView().
+        SetDynamicColors(true).
+        SetWordWrap(true).
+        SetRegions(true).
+        SetChangedFunc(func() {
+            app.Draw()
+        })
+}
+
 type Button struct {
     *tview.Button
 }
 
 func (b Button) GetFieldWidth() int {
-    return 0
+    return len(b.GetLabel())
 }
 
 func (b Button) SetFinishedFunc(handler func(key tcell.Key)) tview.FormItem {
@@ -142,18 +154,23 @@ func makeOptionsForm() *tview.Form {
 }
 
 func makeScriptsForm() *tview.Form {
+    b := Button{tview.NewButton(utils.POS_GRUB_CHOOSE_THEME).SetSelectedFunc(buttonSelGrubTheme)}
+    b.SetFocusFunc(func(){
+        fmt.Fprintf(scriptInfo, "%s", utils.ScriptInfo[utils.POS_GRUB_CHOOSE_THEME])
+    })
     return tview.NewForm().
                SetItemPadding(3).
                SetFieldBackgroundColor(tcell.Color16).
                SetFieldTextColor(tcell.Color231).
-               AddFormItem(Button{tview.NewButton("SET GRUB THEME").SetSelectedFunc(buttonSelGrubTheme)}).
-               AddFormItem(Button{tview.NewButton("SET SDDM THEME").SetSelectedFunc(buttonSelSddmTheme)}).
+               AddFormItem(b).
+               AddFormItem(Button{tview.NewButton(utils.POS_SDDM_CHOOSE_THEME).SetSelectedFunc(buttonSelSddmTheme)}).
                AddFormItem(Button{tview.NewButton("MAKE STATUSBAR").SetSelectedFunc(buttonSelMakeBar)})
 }
 
 
-func Options(app *tview.Application,nextSlide func()) (title string, content tview.Primitive){
-
+func Options(a *tview.Application,nextSlide func()) (title string, content tview.Primitive){
+    app = a
+    makeScriptsInfoTextView()
 	confirm = tview.NewModal().
 		AddButtons([]string{"OK"}).SetDoneFunc(func(buttonIndex int, buttonLabel string) {
 		pages.HidePage("confirm")
@@ -204,12 +221,11 @@ func Options(app *tview.Application,nextSlide func()) (title string, content tvi
                        SetBorders(true).
                        AddItem(tview.NewFlex().
                        SetDirection(tview.FlexRow).
-                       AddItem(tview.NewBox(), 0, 1, false).
+                       AddItem(scriptInfo, 0, 3, false).
                        AddItem(tview.NewFlex().
                            SetDirection(tview.FlexColumn).
                            AddItem(o1, 0, 3, true).
-                           AddItem(o2, 0, 3, true), 0, 6, true).
-                       AddItem(tview.NewBox(), 0, 1, false), 0, 0, 1, 1, 0, 0, true)
+                           AddItem(o2, 0, 3, true), 0, 6, true), 0, 0, 1, 1, 0, 0, true)
         }
 	}
 

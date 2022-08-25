@@ -1,4 +1,4 @@
-module github.com/FT-Labs/PhySettings
+module github.com/FT-Labs/physettings
 
 go 1.19
 
