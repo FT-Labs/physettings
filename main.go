@@ -4,12 +4,12 @@ import (
 	"fmt"
 	"strconv"
 
+	. "github.com/FT-Labs/physettings/cover"
+	. "github.com/FT-Labs/physettings/keys"
+	. "github.com/FT-Labs/physettings/options"
+	"github.com/FT-Labs/physettings/utils"
+	"github.com/FT-Labs/tview"
 	"github.com/gdamore/tcell/v2"
-	"github.com/rivo/tview"
-    "github.com/FT-Labs/physettings/utils"
-    c "github.com/FT-Labs/physettings/cover"
-    k "github.com/FT-Labs/physettings/keys"
-    o "github.com/FT-Labs/physettings/options"
 )
 
 
@@ -22,9 +22,9 @@ func main() {
     // Get global attributes
     utils.FetchAttributes()
     slides := []Slide{
-        c.Cover,
-        k.Keys,
-        o.Options,
+        Cover,
+        Keys,
+        Options,
     }
 
     pages := tview.NewPages()

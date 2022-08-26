@@ -4,7 +4,7 @@ import (
 	"os/exec"
 	"strings"
 	"github.com/gdamore/tcell/v2"
-	"github.com/rivo/tview"
+	"github.com/FT-Labs/tview"
 )
 
 func Keys(app *tview.Application, nextSlide func()) (title string, content tview.Primitive){

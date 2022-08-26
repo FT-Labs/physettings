@@ -12,10 +12,11 @@ import (
 )
 
 const(
+    ROFI_COLOR            = "ROFI_COLOR"
     POWERMENU_TYPE        = "POWERMENU_TYPE"
     POWERMENU_STYLE       = "POWERMENU_STYLE"
+    POWERMENU_CONFIRM     = "POWERMENU_CONFIRM"
     PICOM_EXPERIMENTAL    = "PICOM_EXPERIMENTAL"
-    ROFI_COLOR            = "ROFI_COLOR"
     POS_MAKE_BAR          = "pOS-make-bar"
     POS_GRUB_CHOOSE_THEME = "pOS-grub-choose-theme"
     POS_SDDM_CHOOSE_THEME = "pOS-sddm-choose-theme"
