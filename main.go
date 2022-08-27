@@ -58,7 +58,7 @@ func main() {
     for index, slide := range slides {
         title, primitive := slide(app, nextSlide)
         pages.AddPage(strconv.Itoa(index), primitive, true, index == 0)
-        fmt.Fprintf(info, `%d ["%d"][darkcyan]%s[white][""]  `, index+1, index, title)
+        fmt.Fprintf(info, `F%d ["%d"][darkcyan]%s[white][""]  `, index+1, index, title)
     }
     info.Highlight("0")
 
