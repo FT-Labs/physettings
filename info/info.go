@@ -1,4 +1,4 @@
-package cover
+package info
 
 import (
 	"fmt"
@@ -94,5 +94,5 @@ func Cover(app *tview.Application, nextSlide func()) (title string, content tvie
                 AddItem(ftlBox, ftlWidth, 1, true).
                 AddItem(tview.NewBox(), 0, 1, false), ftlHeight, 1, false)
 
-	return "INFO", flex
+	return "  INFO ", flex
 }

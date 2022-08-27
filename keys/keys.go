@@ -72,5 +72,5 @@ func Keys(app *tview.Application, nextSlide func()) (title string, content tview
             AddItem(table, 0, 1, true), maxC1 + maxC2 + 3, 2, true).
         AddItem(tview.NewBox(), 0, 1, false)
 
-    return "KEY SHEET", flex
+    return "   KEY SHEET ", flex
 }

@@ -56,7 +56,7 @@ func buttonSelMakeBar() {
                 SetBackgroundColor(tcell.Color59).
                 SetTextColor(tcell.ColorRed)
     } else {
-        confirm.SetText("Succesfully updated statusbar.").
+        confirm.SetText("Succesfully updated statusbar").
                 SetBackgroundColor(tcell.Color59).
                 SetTextColor(tcell.ColorLightGreen)
     }
@@ -114,20 +114,32 @@ func dropSelPowerMenuStyle(selection string, i int) {
 
 func makeDropdown(opt string) *tview.DropDown {
     if opt == u.ROFI_COLOR {
-        return  (tview.NewDropDown().
-                        SetLabel("POWERMENU_COLOR : ").
-                        SetOptions(u.RofiColors, dropSelRofiColor).
-                        SetCurrentOption(0))
+        d := tview.NewDropDown().
+                SetLabel("POWERMENU_COLOR : ").
+                SetOptions(u.RofiColors, dropSelRofiColor).
+                SetCurrentOption(0)
+        d.SetFocusFunc(func(){
+            go printScriptInfo("Set colorscheme of powermenu.", d)
+        })
+        return d
     } else if opt == u.POWERMENU_STYLE {
-        return      (tview.NewDropDown().
-                        SetLabel(u.POWERMENU_STYLE + " : ").
-                        SetOptions(u.PowerMenuStyles, dropSelPowerMenuStyle).
-                        SetCurrentOption(0))
+        d := tview.NewDropDown().
+                SetLabel(u.POWERMENU_STYLE + " : ").
+                SetOptions(u.PowerMenuStyles, dropSelPowerMenuStyle).
+                SetCurrentOption(0)
+        d.SetFocusFunc(func() {
+            go printScriptInfo("Change powermenu style, this will only rearrange items. Look will be similar, but properties will be changed according to powermenu type", d)
+        })
+        return d
     }// else if opt == POWERMENU_TYPE {
-    return          (tview.NewDropDown().
-                        SetLabel(u.POWERMENU_TYPE + " : ").
-                        SetOptions(u.PowerMenuTypes, dropSelPowerMenuType).
-                        SetCurrentOption(0))
+    d := tview.NewDropDown().
+            SetLabel(u.POWERMENU_TYPE + " : ").
+            SetOptions(u.PowerMenuTypes, dropSelPowerMenuType).
+            SetCurrentOption(0)
+    d.SetFocusFunc(func() {
+        go printScriptInfo("Change type of powermenu. This will change the initial look of powermenu.", d)
+    })
+    return d
 }
 
 func makeScriptsInfoTextView() {
@@ -135,16 +147,17 @@ func makeScriptsInfoTextView() {
         SetDynamicColors(true).
         SetWordWrap(true).
         SetRegions(true).
-        SetText("Set colorscheme of powermenu.").
         SetChangedFunc(func() {
             app.Draw()
         })
 }
 
 func printScriptInfo(s string, p tview.Primitive) {
+    scriptInfo.Clear()
     arr := strings.Split(s, " ")
     for _, word := range arr {
         if p.HasFocus() != true {
+            scriptInfo.Clear()
             return
         }
         time.Sleep(time.Millisecond * 20)
@@ -152,6 +165,7 @@ func printScriptInfo(s string, p tview.Primitive) {
     }
 }
 
+// Normal tview requires all of these, not necessary anymore with FT-Labs fork
 // type Button struct {
 //     *tview.Button
 // }
@@ -172,6 +186,15 @@ func printScriptInfo(s string, p tview.Primitive) {
 // }
 
 func makeOptionsForm() *tview.Form {
+    c := tview.NewCheckbox().
+            SetLabel("ASK ON SHUTDOWN :").
+            SetChecked(u.Attrs[u.POWERMENU_CONFIRM] == "true").
+            SetChangedFunc(checkSelShutdownConfirm)
+
+    c.SetFocusFunc(func(){
+        go printScriptInfo("If selected, when shutting down or rebooting computer, it will ask for a confirmation prompt", c)
+    })
+
     return tview.NewForm().
                 SetFieldBackgroundColor(tcell.Color238).
                 SetFieldTextColor(tcell.Color255).
@@ -180,11 +203,7 @@ func makeOptionsForm() *tview.Form {
                 AddDropDown(makeDropdown(u.ROFI_COLOR)).
                 AddDropDown(makeDropdown(u.POWERMENU_TYPE)).
                 AddDropDown(makeDropdown(u.POWERMENU_STYLE)).
-                AddCheckbox(tview.NewCheckbox().
-                    SetLabel("ASK ON SHUTDOWN :").
-                    SetChecked(u.Attrs[u.POWERMENU_CONFIRM] == "yes").
-                    SetChangedFunc(checkSelShutdownConfirm))
-
+                AddCheckbox(c)
 }
 
 func makeScriptsForm() *tview.Form {
@@ -199,18 +218,12 @@ func makeScriptsForm() *tview.Form {
                     SetLabelColorActivated(tcell.Color238)
 
     bGrub.SetFocusFunc(func(){
-        scriptInfo.Clear()
-        //fmt.Fprintf(scriptInfo, "%s", u.ScriptInfo[u.POS_GRUB_CHOOSE_THEME])
         go printScriptInfo(u.ScriptInfo[u.POS_GRUB_CHOOSE_THEME], bGrub)
     })
     bSddm.SetFocusFunc(func(){
-        scriptInfo.Clear()
-        //fmt.Fprintf(scriptInfo, "%s", u.ScriptInfo[u.POS_SDDM_CHOOSE_THEME])
         go printScriptInfo(u.ScriptInfo[u.POS_SDDM_CHOOSE_THEME], bSddm)
     })
     bBar.SetFocusFunc(func(){
-        scriptInfo.Clear()
-        //fmt.Fprintf(scriptInfo, "%s", u.ScriptInfo[u.POS_MAKE_BAR])
         go printScriptInfo(u.ScriptInfo[u.POS_MAKE_BAR], bBar)
     })
     return tview.NewForm().
@@ -245,27 +258,10 @@ func Options(a *tview.Application,nextSlide func()) (title string, content tview
             o2 = makeScriptsForm()
 
             o1.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
-                if event.Key() == tcell.KeyBacktab {
-                    scriptInfo.Clear()
+                if event.Key() == tcell.KeyLeft || event.Key() == tcell.KeyRight {
                     app.SetFocus(o2)
                     lastFocus = o2
                     return nil
-                } else if event.Key() == tcell.KeyTab {
-                    f := func() {
-                        scriptInfo.Clear()
-                        idx, _ := o1.GetFocusedItemIndex()
-                        idx = (idx + 1) % o1.GetFormItemCount()
-                        if idx == 0 {
-                            fmt.Fprintf(scriptInfo, "Set colorscheme of powermenu.")
-                        } else if idx == 1 {
-                            fmt.Fprintf(scriptInfo, "Change powermenu type")
-                        } else if idx == 2 {
-                            fmt.Fprintf(scriptInfo, "Change powermenu style, this will only rearrange items. Look will be similar, but properties will be changed according to powermenu type")
-                        } else if idx == 3 {
-                            fmt.Fprintf(scriptInfo, "If selected, when shutting down or rebooting computer, it will ask for a confirmation prompt")
-                        }
-                    }
-                    defer f()
                 }
                 return event
             })
@@ -275,8 +271,7 @@ func Options(a *tview.Application,nextSlide func()) (title string, content tview
             })
 
             o2.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
-                if event.Key() == tcell.KeyBacktab {
-                    scriptInfo.Clear()
+                if event.Key() == tcell.KeyLeft || event.Key() == tcell.KeyRight {
                     app.SetFocus(o1)
                     lastFocus = o1
                     return nil
@@ -310,11 +305,11 @@ func Options(a *tview.Application,nextSlide func()) (title string, content tview
             AddItem(tview.NewBox(), 0, 3, false).
             AddItem(newPrimitive(""), 0, 9, true).
             AddItem(tview.NewBox(), 0, 3, false), 0, 16, true).
-		AddItem(newPrimitive("Press Tab to navigate in current column, Shift+Tab to switch between columns"), 0, 1, false).
+		AddItem(newPrimitive("Use Tab-Shift+Tab or Up-Down keys to navigate, Left-Right to navigate between columns"), 0, 1, false).
 		AddItem(newPrimitive("Enter to select (type to search, or use arrow keys), Esc to cancel selection"), 0, 1, false)
 
 	pages.AddPage("flex", flex, true, true).
 		AddPage("confirm", confirm, true, false)
 
-    return "OPTIONS", pages
+    return " 煉 OPTIONS ", pages
 }

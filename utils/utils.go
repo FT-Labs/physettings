@@ -16,10 +16,14 @@ const(
     POWERMENU_TYPE        = "POWERMENU_TYPE"
     POWERMENU_STYLE       = "POWERMENU_STYLE"
     POWERMENU_CONFIRM     = "POWERMENU_CONFIRM"
+
     PICOM_EXPERIMENTAL    = "PICOM_EXPERIMENTAL"
+
     POS_MAKE_BAR          = "pOS-make-bar"
     POS_GRUB_CHOOSE_THEME = "pOS-grub-choose-theme"
     POS_SDDM_CHOOSE_THEME = "pOS-sddm-choose-theme"
+
+    PLYMOUTH              = "PLYMOUTH"
 )
 
 var settingsPath string
@@ -30,9 +34,14 @@ var PowerMenuTypes  []string
 var PowerMenuStyles []string
 var ScriptInfo map[string]string
 
+func appendAttribute(attribute string) error {
+    cmd := fmt.Sprintf("echo %s >> %s", attribute, settingsPath)
+    return exec.Command("/bin/bash", "-c", cmd).Run()
+}
+
 func ChangeAttribute(attribute, value string) {
-    s := fmt.Sprintf("sed -i '/%s/c\\%s=%s' %s", attribute, attribute, value, settingsPath)
-    err := exec.Command("/bin/bash", "-c", s).Run()
+    cmd := fmt.Sprintf("sed -i '/%s/c\\%s=%s' %s", attribute, attribute, value, settingsPath)
+    err := exec.Command("/bin/bash", "-c", cmd).Run()
 
     if err != nil {
         panic("Error occurred changing attribute")
@@ -132,12 +141,12 @@ func FetchAttributes() {
         panic(err)
     }
     settingsPath = fmt.Sprintf("%s/.config/phyos/phyos.conf", home)
+    settingsDefaultPath := fmt.Sprintf("%s/.config/phyos/phyos.conf.default", home)
     f, err := os.Open(settingsPath)
 
     if err != nil {
-        panic("Can't open file")
+        panic("Can't open user settings file")
     }
-    defer f.Close()
 
     sc := bufio.NewScanner(f)
 
@@ -146,8 +155,8 @@ func FetchAttributes() {
 
         if strings.Contains(l, "=") {
             arr := strings.Split(l, "=")
-            if arr[1] == "" {
-                Attrs[arr[0]] = "None"
+            if len(arr) == 1 {
+                Attrs[arr[0]] = ""
             } else {
                 Attrs[arr[0]] = arr[1]
             }
@@ -156,6 +165,34 @@ func FetchAttributes() {
     if err := sc.Err(); err != nil {
         panic(err)
     }
+    f.Close()
+    f, err = os.Open(settingsDefaultPath)
+
+    sc = bufio.NewScanner(f)
+
+    if err != nil {
+        panic("Can't open default settings file")
+    }
+
+    for sc.Scan() {
+        l := strings.ReplaceAll(sc.Text(), "\n", "")
+
+        if strings.Contains(l, "=") {
+            arr := strings.Split(l, "=")
+            if _, ok := Attrs[arr[0]]; !ok {
+                err := appendAttribute(l)
+                if len(arr) > 1 {
+                    Attrs[arr[0]] = arr[1]
+                }
+                if err != nil {
+                    fmt.Fprintf(os.Stderr, err.Error())
+                }
+            }
+        }
+    }
+
+    f.Close()
+
     PowerMenuTypes = fetchPowerMenuTypes()
     RofiColors = fetchRofiColors()
     PowerMenuStyles = append(PowerMenuStyles, "style-1", "style-2", "style-3", "style-4", "style-5")

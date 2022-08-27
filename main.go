@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strconv"
 
-	. "github.com/FT-Labs/physettings/cover"
+	. "github.com/FT-Labs/physettings/info"
 	. "github.com/FT-Labs/physettings/keys"
 	. "github.com/FT-Labs/physettings/options"
 	"github.com/FT-Labs/physettings/utils"
