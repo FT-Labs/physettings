@@ -7,6 +7,7 @@ import (
 	. "github.com/FT-Labs/physettings/info"
 	. "github.com/FT-Labs/physettings/keys"
 	. "github.com/FT-Labs/physettings/options"
+	. "github.com/FT-Labs/physettings/picom"
 	"github.com/FT-Labs/physettings/utils"
 	"github.com/FT-Labs/tview"
 	"github.com/gdamore/tcell/v2"
@@ -25,6 +26,7 @@ func main() {
         Cover,
         Keys,
         Options,
+        Picom,
     }
 
     pages := tview.NewPages()

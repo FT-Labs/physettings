@@ -1,9 +1,7 @@
-github.com/FT-Labs/tview v0.0.0-20220826005016-beb95e9b0fe3 h1:7YejOhhNnMohSMBy+lYYKpVPeBXOoLF3KNGxiFsJGxw=
-github.com/FT-Labs/tview v0.0.0-20220826005016-beb95e9b0fe3/go.mod h1:OxQ1yrjgG8Gy9BnIbUYYVXTaeL7/VQcSgtFBsPR13hg=
-github.com/FT-Labs/tview v0.0.0-20220826193247-aecaab9203fa h1:EC/GC28lY6KpICoJQcu6pSwIGMwQVulqD0FuflzbGm0=
-github.com/FT-Labs/tview v0.0.0-20220826193247-aecaab9203fa/go.mod h1:OxQ1yrjgG8Gy9BnIbUYYVXTaeL7/VQcSgtFBsPR13hg=
-github.com/FT-Labs/tview v0.0.0-20220826221335-22f3df0d194e h1:G82nttG4eDVZBvO2UvISQ4weaF8mM9KRTBtZU8MroXo=
-github.com/FT-Labs/tview v0.0.0-20220826221335-22f3df0d194e/go.mod h1:OxQ1yrjgG8Gy9BnIbUYYVXTaeL7/VQcSgtFBsPR13hg=
+github.com/FT-Labs/tview v0.0.0-20220827203919-47366ef19c58 h1:jegCQtnBsBQXR8K2okU7tdSp8gbXwzuwpG52Ndi2av8=
+github.com/FT-Labs/tview v0.0.0-20220827203919-47366ef19c58/go.mod h1:OxQ1yrjgG8Gy9BnIbUYYVXTaeL7/VQcSgtFBsPR13hg=
+github.com/FT-Labs/tview v0.0.0-20220828013437-5e284682d1e0 h1:cMcG38AACjsjcLQoyA4JT07uY/pRsro9cknaHptvggQ=
+github.com/FT-Labs/tview v0.0.0-20220828013437-5e284682d1e0/go.mod h1:OxQ1yrjgG8Gy9BnIbUYYVXTaeL7/VQcSgtFBsPR13hg=
 github.com/gdamore/encoding v1.0.0 h1:+7OoQ1Bc6eTm5niUzBa0Ctsh6JbMW6Ra+YNuAtDBdko=
 github.com/gdamore/encoding v1.0.0/go.mod h1:alR0ol34c49FCSBLjhosxzcPHQbf2trDkoo5dl+VrEg=
 github.com/gdamore/tcell/v2 v2.5.2 h1:tKzG29kO9p2V++3oBY2W9zUjYu7IK1MENFeY/BzJSVY=
