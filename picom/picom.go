@@ -22,48 +22,48 @@ var o1, o2 *tview.Form
 
 func checkSelAnimConfirm(checked bool) {
     if checked {
-        changePicomAttribute(_animations, "true")
+        changePicomAttribute(_animations, "true", false)
     } else {
-        changePicomAttribute(_animations, "false")
+        changePicomAttribute(_animations, "false", false)
     }
 }
 
 func checkSelExperimental(checked bool) {
     if checked {
         u.SetAttribute(u.PICOM_EXPERIMENTAL, "true")
-        changePicomAttribute(u.PICOM_EXPERIMENTAL, "true")
+        changePicomAttribute(u.PICOM_EXPERIMENTAL, "true", false)
     } else {
         u.SetAttribute(u.PICOM_EXPERIMENTAL, "false")
-        changePicomAttribute(u.PICOM_EXPERIMENTAL, "false")
+        changePicomAttribute(u.PICOM_EXPERIMENTAL, "false", false)
     }
 }
 
 func checkSelFadeConfirm(checked bool) {
     if checked {
-        changePicomAttribute(_fading, "true")
+        changePicomAttribute(_fading, "true", false)
     } else {
-        changePicomAttribute(_fading, "false")
+        changePicomAttribute(_fading, "false", false)
     }
 }
 
 func checkSelFadeNextTag(checked bool) {
     if checked {
-        changePicomAttribute(_enable_fading_next_tag, "true")
+        changePicomAttribute(_enable_fading_next_tag, "true", false)
     } else {
-        changePicomAttribute(_enable_fading_next_tag, "false")
+        changePicomAttribute(_enable_fading_next_tag, "false", false)
     }
 }
 
 func checkSelFadePrevTag(checked bool) {
     if checked {
-        changePicomAttribute(_enable_fading_prev_tag, "true")
+        changePicomAttribute(_enable_fading_prev_tag, "true", false)
     } else {
-        changePicomAttribute(_enable_fading_prev_tag, "false")
+        changePicomAttribute(_enable_fading_prev_tag, "false", false)
     }
 }
 
 func dropSelOpenWindowAnim(selection string, i int) {
-    err := changePicomAttribute(_animation_for_open_window, selection)
+    err := changePicomAttribute(_animation_for_open_window, selection, true)
     if err != nil {
         confirm.SetText(err.Error()).
                 SetBackgroundColor(tcell.Color59).
@@ -76,28 +76,42 @@ func dropSelOpenWindowAnim(selection string, i int) {
     pages.ShowPage("confirm")
 }
 
-func dropSelPowerMenuType(selection string, i int) {
-    err := u.SetAttribute(u.POWERMENU_TYPE, selection)
+func dropSelCloseWindowAnim(selection string, i int) {
+    err := changePicomAttribute(_animation_for_unmap_window, selection, true)
     if err != nil {
-        confirm.SetText("Failed to set powermenu type").
+        confirm.SetText(err.Error()).
                 SetBackgroundColor(tcell.Color59).
                 SetTextColor(tcell.ColorRed)
     } else {
-        confirm.SetText("Powermenu type changed to: " + selection).
+        confirm.SetText("Open window animation changed to: " + selection).
                 SetBackgroundColor(tcell.Color59).
                 SetTextColor(tcell.ColorLightGreen)
     }
     pages.ShowPage("confirm")
 }
 
-func dropSelPowerMenuStyle(selection string, i int) {
-    err := u.SetAttribute(u.POWERMENU_STYLE, selection)
+func dropSelNextTagAnim(selection string, i int) {
+    err := changePicomAttribute(_animation_for_next_tag, selection, true)
     if err != nil {
-        confirm.SetText("Failed to set powermenu style").
+        confirm.SetText(err.Error()).
                 SetBackgroundColor(tcell.Color59).
                 SetTextColor(tcell.ColorRed)
     } else {
-        confirm.SetText("Powermenu style changed to: " + selection).
+        confirm.SetText("Next tag animation change to: " + selection).
+                SetBackgroundColor(tcell.Color59).
+                SetTextColor(tcell.ColorLightGreen)
+    }
+    pages.ShowPage("confirm")
+}
+
+func dropSelPrevTagAnim(selection string, i int) {
+    err := changePicomAttribute(_animation_for_prev_tag, selection, true)
+    if err != nil {
+        confirm.SetText(err.Error()).
+                SetBackgroundColor(tcell.Color59).
+                SetTextColor(tcell.ColorRed)
+    } else {
+        confirm.SetText("Previous tag animation change to: " + selection).
                 SetBackgroundColor(tcell.Color59).
                 SetTextColor(tcell.ColorLightGreen)
     }
@@ -117,28 +131,32 @@ func makeDropdown(opt string) *tview.DropDown {
     switch opt {
     case _animation_for_open_window:
         d.SetLabel("OPEN WINDOW ANIM : ").
-            SetOptions(animOpenOpts, dropSelRofiColor).
+            SetOptions(animOpenOpts, dropSelOpenWindowAnim).
+            SetFieldWidth(16).
             SetCurrentOption(0)
         d.SetFocusFunc(func(){
             scriptInfoLast = printScriptInfo("Choose window opening animation.")
         })
     case _animation_for_unmap_window:
         d.SetLabel("CLOSE WINDOW ANIM :").
-            SetOptions(animCloseOpts, dropSelPowerMenuStyle).
+            SetOptions(animCloseOpts, dropSelCloseWindowAnim).
+            SetFieldWidth(16).
             SetCurrentOption(0)
         d.SetFocusFunc(func() {
             scriptInfoLast = printScriptInfo("Choose window closing or unmapping animation.")
         })
     case _animation_for_next_tag:
         d.SetLabel("ANIM FOR NEXT TAG :").
-            SetOptions(animNextOpts, dropSelPowerMenuType).
+            SetOptions(animNextOpts, dropSelNextTagAnim).
+            SetFieldWidth(16).
             SetCurrentOption(0)
         d.SetFocusFunc(func() {
             scriptInfoLast = printScriptInfo("Choose animation for incoming tag windows.")
         })
     case _animation_for_prev_tag:
     d.SetLabel("ANIM FOR PREV TAG :").
-        SetOptions(animPrevOpts, dropSelPowerMenuType).
+        SetOptions(animPrevOpts, dropSelPrevTagAnim).
+        SetFieldWidth(16).
         SetCurrentOption(0)
     d.SetFocusFunc(func() {
         scriptInfoLast = printScriptInfo("Choose animation for windows that are going out from current tag.")
@@ -158,7 +176,7 @@ func makeScriptsInfoTextView() {
 }
 
 func printScriptInfo(s string) string {
-    if !scriptRunning && s == scriptInfoLast {
+    if s == scriptInfoLast {
         return s
     }
 
@@ -254,7 +272,7 @@ func makeOptionsForm() *tview.Form {
     i1.SetDoneFunc(func(key tcell.Key){
         switch key {
         case tcell.KeyEnter:
-            err := changePicomAttribute(_animation_stiffness_in_tag, i1.GetText())
+            err := changePicomAttribute(_animation_stiffness_in_tag, i1.GetText(), true)
 
             if err != nil {
                 confirm.SetText(err.Error()).
@@ -290,7 +308,7 @@ func makeOptionsForm() *tview.Form {
     i2.SetDoneFunc(func(key tcell.Key){
         switch key {
         case tcell.KeyEnter:
-            err := changePicomAttribute(_animation_stiffness_tag_change, i2.GetText())
+            err := changePicomAttribute(_animation_stiffness_tag_change, i2.GetText(), true)
 
             if err != nil {
                 confirm.SetText(err.Error()).
@@ -307,7 +325,7 @@ func makeOptionsForm() *tview.Form {
 
     return tview.NewForm().
                 SetFieldBackgroundColor(tcell.Color238).
-                SetFieldTextColor(tcell.Color248).
+                SetFieldTextColor(tcell.Color255).
                 SetLabelColor(tcell.Color33).
                 SetItemPadding(1).
                 AddCheckbox(c).
@@ -328,7 +346,21 @@ func makeAnimationForm() *tview.Form {
                AddDropDown(makeDropdown(_animation_for_open_window)).
                AddDropDown(makeDropdown(_animation_for_unmap_window)).
                AddDropDown(makeDropdown(_animation_for_prev_tag)).
-               AddDropDown(makeDropdown(_animation_for_next_tag))
+               AddDropDown(makeDropdown(_animation_for_next_tag)).
+               AddButtonItem(tview.NewButton("SAVE CHANGES").
+                                SetSelectedFunc(func(){
+                                    err := savePicomOpts()
+                                    if err != nil {
+                                        confirm.SetText(err.Error()).
+                                                SetBackgroundColor(tcell.Color59).
+                                                SetTextColor(tcell.ColorRed)
+                                    } else {
+                                        confirm.SetText("Picom options saved succesfully").
+                                                SetBackgroundColor(tcell.Color59).
+                                                SetTextColor(tcell.ColorLightGreen)
+                                    }
+                                    pages.ShowPage("confirm")
+                                }))
 }
 
 

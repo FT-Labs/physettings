@@ -89,13 +89,13 @@ var animNextOpts = []string {
     "zoom",
 }
 
-func changePicomAttribute(attribute, value string) error {
+func changePicomAttribute(attribute, value string, isString bool) error {
     picomOpts[attribute] = value
     var cmd string
-    if attribute == _fading {
-        cmd = fmt.Sprintf("sed -i '/%s/c\\%s = %s;' /tmp/picom.conf", "fading\\ =", attribute, value)
+    if isString {
+        cmd = fmt.Sprintf("sed -i '/%s/c\\%s = \"%s\";' /tmp/picom.conf", attribute + "\\ =", attribute, value)
     } else {
-        cmd = fmt.Sprintf("sed -i '/%s/c\\%s = %s;' /tmp/picom.conf", attribute, attribute, value)
+        cmd = fmt.Sprintf("sed -i '/%s/c\\%s = %s;' /tmp/picom.conf", attribute + "\\ =", attribute, value)
     }
     err := exec.Command("/bin/bash", "-c", cmd).Run()
 
@@ -146,4 +146,14 @@ func readPicomOpts() {
             }
         }
     }
+}
+
+func savePicomOpts() error {
+    cmd := fmt.Sprintf("cp -f /tmp/picom.conf %s", picomConfPath)
+    err := exec.Command("/bin/bash", "-c", cmd).Run()
+
+    if err != nil {
+        return err
+    }
+    return nil
 }

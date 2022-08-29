@@ -150,7 +150,7 @@ func makeScriptsInfoTextView() {
 }
 
 func printScriptInfo(s string) string {
-    if !scriptRunning && s == scriptInfoLast {
+    if s == scriptInfoLast {
         return s
     }
     run := func() {
@@ -223,6 +223,7 @@ func makeScriptsForm() *tview.Form {
                SetItemPadding(3).
                SetFieldBackgroundColor(tcell.Color238).
                SetFieldTextColor(tcell.Color255).
+               SetLabelColor(tcell.Color111).
                AddButtonItem(bGrub).
                AddButtonItem(bSddm).
                AddButtonItem(bBar)
