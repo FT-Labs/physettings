@@ -14,10 +14,11 @@ var app *tview.Application
 var pages *tview.Pages
 var confirm *tview.Modal
 var scriptInfo *tview.TextView
+var scriptInfoLast string
 
 var lastFocus tview.Primitive
-var lastFocusIndex int = 0
 var o1, o2 *tview.Form
+var scriptRunning = false
 
 func buttonSelGrubTheme() {
     err := u.RunScript(u.POS_GRUB_CHOOSE_THEME)
@@ -30,7 +31,6 @@ func buttonSelGrubTheme() {
                 SetBackgroundColor(tcell.Color59).
                 SetTextColor(tcell.ColorLightGreen)
     }
-    lastFocusIndex = 1
     pages.ShowPage("confirm")
 }
 
@@ -45,7 +45,6 @@ func buttonSelSddmTheme() {
                 SetBackgroundColor(tcell.Color59).
                 SetTextColor(tcell.ColorLightGreen)
     }
-    lastFocusIndex = 2
     pages.ShowPage("confirm")
 }
 
@@ -60,7 +59,6 @@ func buttonSelMakeBar() {
                 SetBackgroundColor(tcell.Color59).
                 SetTextColor(tcell.ColorLightGreen)
     }
-    lastFocusIndex = 3
     pages.ShowPage("confirm")
 }
 
@@ -77,7 +75,6 @@ func dropSelRofiColor(selection string, i int) {
     confirm.SetText("Rofi colorscheme changed to: " + selection).
             SetBackgroundColor(tcell.Color59).
             SetTextColor(tcell.ColorLightGreen)
-    lastFocusIndex = i
     pages.ShowPage("confirm")
 }
 
@@ -92,7 +89,6 @@ func dropSelPowerMenuType(selection string, i int) {
                 SetBackgroundColor(tcell.Color59).
                 SetTextColor(tcell.ColorLightGreen)
     }
-    lastFocusIndex = i
     pages.ShowPage("confirm")
 }
 
@@ -107,39 +103,40 @@ func dropSelPowerMenuStyle(selection string, i int) {
                 SetBackgroundColor(tcell.Color59).
                 SetTextColor(tcell.ColorLightGreen)
     }
-    lastFocusIndex = i
     pages.ShowPage("confirm")
 }
 
 
 func makeDropdown(opt string) *tview.DropDown {
-    if opt == u.ROFI_COLOR {
+    switch opt {
+    case u.ROFI_COLOR:
         d := tview.NewDropDown().
                 SetLabel("POWERMENU_COLOR : ").
                 SetOptions(u.RofiColors, dropSelRofiColor).
                 SetCurrentOption(0)
         d.SetFocusFunc(func(){
-            go printScriptInfo("Set colorscheme of powermenu.", d)
+            scriptInfoLast = printScriptInfo("Set colorscheme of powermenu.")
         })
         return d
-    } else if opt == u.POWERMENU_STYLE {
+    case u.POWERMENU_STYLE:
         d := tview.NewDropDown().
                 SetLabel(u.POWERMENU_STYLE + " : ").
                 SetOptions(u.PowerMenuStyles, dropSelPowerMenuStyle).
                 SetCurrentOption(0)
         d.SetFocusFunc(func() {
-            go printScriptInfo("Change powermenu style, this will only rearrange items. Look will be similar, but properties will be changed according to powermenu type", d)
+            scriptInfoLast = printScriptInfo("Change powermenu style, which only rearranges items. Looks will be similar, but properties will be changed according to powermenu type.")
         })
         return d
-    }// else if opt == POWERMENU_TYPE {
+    default:
     d := tview.NewDropDown().
             SetLabel(u.POWERMENU_TYPE + " : ").
             SetOptions(u.PowerMenuTypes, dropSelPowerMenuType).
             SetCurrentOption(0)
     d.SetFocusFunc(func() {
-        go printScriptInfo("Change type of powermenu. This will change the initial look of powermenu.", d)
+        scriptInfoLast = printScriptInfo("Change the type of powermenu. This will change the display of powermenu.")
     })
     return d
+    }
 }
 
 func makeScriptsInfoTextView() {
@@ -152,38 +149,34 @@ func makeScriptsInfoTextView() {
         })
 }
 
-func printScriptInfo(s string, p tview.Primitive) {
-    scriptInfo.Clear()
-    arr := strings.Split(s, " ")
-    for _, word := range arr {
-        if p.HasFocus() != true {
-            scriptInfo.Clear()
-            return
-        }
-        time.Sleep(time.Millisecond * 20)
-        fmt.Fprintf(scriptInfo, "%s ", word)
+func printScriptInfo(s string) string {
+    if !scriptRunning && s == scriptInfoLast {
+        return s
     }
+    run := func() {
+        scriptInfo.Clear()
+        arr := strings.Split(s, " ")
+        for _, word := range arr {
+            for i := 0; i < 20; i++ {
+                time.Sleep(time.Millisecond)
+                if !scriptRunning {
+                    return
+                }
+            }
+            fmt.Fprintf(scriptInfo, "%s ", word)
+        }
+    }
+
+    if scriptRunning {
+        scriptRunning = false
+        time.Sleep(time.Millisecond * 2)
+        printScriptInfo(s)
+    } else {
+        scriptRunning = true
+        go run()
+    }
+    return s
 }
-
-// Normal tview requires all of these, not necessary anymore with FT-Labs fork
-// type Button struct {
-//     *tview.Button
-// }
-
-// func (b *Button) GetFieldWidth() int {
-//     return len(b.GetLabel())
-// }
-
-// func (b *Button) SetFinishedFunc(handler func(key tcell.Key)) tview.FormItem {
-//     b.SetExitFunc(handler)
-//     return b
-// }
-
-// func (b *Button) SetFormAttributes(labelWidth int, labelColor, bgColor, fieldTextColor, fieldBgColor tcell.Color) tview.FormItem {
-//     b.SetLabelColor(fieldTextColor)
-//     b.SetBackgroundColor(fieldBgColor)
-//     return b
-// }
 
 func makeOptionsForm() *tview.Form {
     c := tview.NewCheckbox().
@@ -192,7 +185,7 @@ func makeOptionsForm() *tview.Form {
             SetChangedFunc(checkSelShutdownConfirm)
 
     c.SetFocusFunc(func(){
-        go printScriptInfo("If selected, when shutting down or rebooting computer, it will ask for a confirmation prompt", c)
+        scriptInfoLast = printScriptInfo("If selected, a confirmation prompt will appear when shutting down or rebooting the computer.")
     })
 
     return tview.NewForm().
@@ -218,13 +211,13 @@ func makeScriptsForm() *tview.Form {
                     SetLabelColorActivated(tcell.Color238)
 
     bGrub.SetFocusFunc(func(){
-        go printScriptInfo(u.ScriptInfo[u.POS_GRUB_CHOOSE_THEME], bGrub)
+        scriptInfoLast = printScriptInfo(u.ScriptInfo[u.POS_GRUB_CHOOSE_THEME])
     })
     bSddm.SetFocusFunc(func(){
-        go printScriptInfo(u.ScriptInfo[u.POS_SDDM_CHOOSE_THEME], bSddm)
+        scriptInfoLast = printScriptInfo(u.ScriptInfo[u.POS_SDDM_CHOOSE_THEME])
     })
     bBar.SetFocusFunc(func(){
-        go printScriptInfo(u.ScriptInfo[u.POS_MAKE_BAR], bBar)
+        scriptInfoLast = printScriptInfo(u.ScriptInfo[u.POS_MAKE_BAR])
     })
     return tview.NewForm().
                SetItemPadding(3).
@@ -266,10 +259,6 @@ func Options(a *tview.Application,nextSlide func()) (title string, content tview
                 return event
             })
 
-            o1.SetFocusFunc(func() {
-                o1.SetFocus(lastFocusIndex)
-            })
-
             o2.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
                 if event.Key() == tcell.KeyLeft || event.Key() == tcell.KeyRight {
                     app.SetFocus(o1)
@@ -277,10 +266,6 @@ func Options(a *tview.Application,nextSlide func()) (title string, content tview
                     return nil
                 }
                 return event
-            })
-
-            o2.SetFocusFunc(func() {
-                o2.SetFocus(lastFocusIndex)
             })
 
             return tview.NewGrid().
@@ -305,8 +290,8 @@ func Options(a *tview.Application,nextSlide func()) (title string, content tview
             AddItem(tview.NewBox(), 0, 3, false).
             AddItem(newPrimitive(""), 0, 9, true).
             AddItem(tview.NewBox(), 0, 3, false), 0, 16, true).
-		AddItem(newPrimitive("Use Tab-Shift+Tab or Up-Down keys to navigate, Left-Right to navigate between columns"), 0, 1, false).
-		AddItem(newPrimitive("Enter to select (type to search, or use arrow keys), Esc to cancel selection"), 0, 1, false)
+		AddItem(newPrimitive("Use Tab or Up-Down keys to navigate, Shift+Tab or Left-Right to navigate between columns"), 0, 1, false).
+		AddItem(newPrimitive("Type to search and Enter to select, Esc to cancel selection"), 0, 1, false)
 
 	pages.AddPage("flex", flex, true, true).
 		AddPage("confirm", confirm, true, false)

@@ -3,7 +3,7 @@ module github.com/FT-Labs/physettings
 go 1.19
 
 require (
-	github.com/FT-Labs/tview v0.0.0-20220828013437-5e284682d1e0
+	github.com/FT-Labs/tview v0.0.0-20220828223216-16b90346240c
 	github.com/gdamore/tcell/v2 v2.5.2
 )
 

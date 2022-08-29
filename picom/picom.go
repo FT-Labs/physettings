@@ -6,63 +6,19 @@ import (
 	"time"
 
 	u "github.com/FT-Labs/physettings/utils"
-	"github.com/gdamore/tcell/v2"
 	"github.com/FT-Labs/tview"
+	"github.com/gdamore/tcell/v2"
 )
 
 var app *tview.Application
 var pages *tview.Pages
 var confirm *tview.Modal
 var scriptInfo *tview.TextView
+var scriptInfoLast string
+var scriptRunning bool = false
 
 var lastFocus tview.Primitive
-var lastFocusIndex int = 0
 var o1, o2 *tview.Form
-
-func buttonSelGrubTheme() {
-    err := u.RunScript(u.POS_GRUB_CHOOSE_THEME)
-    if err != nil {
-        confirm.SetText(err.Error()).
-                SetBackgroundColor(tcell.Color59).
-                SetTextColor(tcell.ColorRed)
-    } else {
-        confirm.SetText("Succesfully changed grub theme").
-                SetBackgroundColor(tcell.Color59).
-                SetTextColor(tcell.ColorLightGreen)
-    }
-    lastFocusIndex = 1
-    pages.ShowPage("confirm")
-}
-
-func buttonSelSddmTheme() {
-    err := u.RunScript(u.POS_SDDM_CHOOSE_THEME)
-    if err != nil {
-        confirm.SetText(err.Error()).
-                SetBackgroundColor(tcell.Color59).
-                SetTextColor(tcell.ColorRed)
-    } else {
-        confirm.SetText("Succesfully changed sddm theme").
-                SetBackgroundColor(tcell.Color59).
-                SetTextColor(tcell.ColorLightGreen)
-    }
-    lastFocusIndex = 2
-    pages.ShowPage("confirm")
-}
-
-func buttonSelMakeBar() {
-    err := u.RunScript(u.POS_MAKE_BAR)
-    if err != nil {
-        confirm.SetText(err.Error()).
-                SetBackgroundColor(tcell.Color59).
-                SetTextColor(tcell.ColorRed)
-    } else {
-        confirm.SetText("Succesfully updated statusbar").
-                SetBackgroundColor(tcell.Color59).
-                SetTextColor(tcell.ColorLightGreen)
-    }
-    lastFocusIndex = 3
-    pages.ShowPage("confirm")
-}
 
 func checkSelAnimConfirm(checked bool) {
     if checked {
@@ -111,7 +67,6 @@ func dropSelRofiColor(selection string, i int) {
     confirm.SetText("Rofi colorscheme changed to: " + selection).
             SetBackgroundColor(tcell.Color59).
             SetTextColor(tcell.ColorLightGreen)
-    lastFocusIndex = i
     pages.ShowPage("confirm")
 }
 
@@ -126,7 +81,6 @@ func dropSelPowerMenuType(selection string, i int) {
                 SetBackgroundColor(tcell.Color59).
                 SetTextColor(tcell.ColorLightGreen)
     }
-    lastFocusIndex = i
     pages.ShowPage("confirm")
 }
 
@@ -141,38 +95,49 @@ func dropSelPowerMenuStyle(selection string, i int) {
                 SetBackgroundColor(tcell.Color59).
                 SetTextColor(tcell.ColorLightGreen)
     }
-    lastFocusIndex = i
     pages.ShowPage("confirm")
 }
 
 
 func makeDropdown(opt string) *tview.DropDown {
-    if opt == u.ROFI_COLOR {
-        d := tview.NewDropDown().
-                SetLabel("POWERMENU_COLOR : ").
-                SetOptions(u.RofiColors, dropSelRofiColor).
-                SetCurrentOption(0)
-        d.SetFocusFunc(func(){
-            go printScriptInfo("Set colorscheme of powermenu.", d)
-        })
-        return d
-    } else if opt == u.POWERMENU_STYLE {
-        d := tview.NewDropDown().
-                SetLabel(u.POWERMENU_STYLE + " : ").
-                SetOptions(u.PowerMenuStyles, dropSelPowerMenuStyle).
-                SetCurrentOption(0)
-        d.SetFocusFunc(func() {
-            go printScriptInfo("Change powermenu style, this will only rearrange items. Look will be similar, but properties will be changed according to powermenu type", d)
-        })
-        return d
-    }// else if opt == POWERMENU_TYPE {
-    d := tview.NewDropDown().
-            SetLabel(u.POWERMENU_TYPE + " : ").
-            SetOptions(u.PowerMenuTypes, dropSelPowerMenuType).
-            SetCurrentOption(0)
-    d.SetFocusFunc(func() {
-        go printScriptInfo("Change type of powermenu. This will change the initial look of powermenu.", d)
+    d := tview.NewDropDown()
+    d.List.SetChangedFunc(func(index int, mainText string, secondaryText string, shortcut rune){
+        scriptInfoLast = printScriptInfo(animInfo[mainText])
     })
+    d.List.SetFocusFunc(func(){
+        _, s := d.GetCurrentOption()
+        scriptInfoLast = printScriptInfo(animInfo[s])
+    })
+    switch opt {
+    case _animation_for_open_window:
+        d.SetLabel("OPEN WINDOW ANIM : ").
+            SetOptions(animOpenOpts, dropSelRofiColor).
+            SetCurrentOption(0)
+        d.SetFocusFunc(func(){
+            scriptInfoLast = printScriptInfo("Choose window opening animation.")
+        })
+    case _animation_for_unmap_window:
+        d.SetLabel("CLOSE WINDOW ANIM :").
+            SetOptions(animCloseOpts, dropSelPowerMenuStyle).
+            SetCurrentOption(0)
+        d.SetFocusFunc(func() {
+            scriptInfoLast = printScriptInfo("Choose window closing or unmapping animation.")
+        })
+    case _animation_for_next_tag:
+        d.SetLabel("ANIM FOR NEXT TAG :").
+            SetOptions(animNextOpts, dropSelPowerMenuType).
+            SetCurrentOption(0)
+        d.SetFocusFunc(func() {
+            scriptInfoLast = printScriptInfo("Choose animation for incoming tag windows.")
+        })
+    case _animation_for_prev_tag:
+    d.SetLabel("ANIM FOR PREV TAG :").
+        SetOptions(animPrevOpts, dropSelPowerMenuType).
+        SetCurrentOption(0)
+    d.SetFocusFunc(func() {
+        scriptInfoLast = printScriptInfo("Choose animation for windows that are going out from current tag.")
+    })
+    }
     return d
 }
 
@@ -186,17 +151,34 @@ func makeScriptsInfoTextView() {
         })
 }
 
-func printScriptInfo(s string, p tview.Primitive) {
-    scriptInfo.Clear()
-    arr := strings.Split(s, " ")
-    for _, word := range arr {
-        if p.HasFocus() != true {
-            scriptInfo.Clear()
-            return
-        }
-        time.Sleep(time.Millisecond * 20)
-        fmt.Fprintf(scriptInfo, "%s ", word)
+func printScriptInfo(s string) string {
+    if !scriptRunning && s == scriptInfoLast {
+        return s
     }
+
+    run := func() {
+        scriptInfo.Clear()
+        arr := strings.Split(s, " ")
+        for _, word := range arr {
+            for i := 0; i < 20; i++ {
+                time.Sleep(time.Millisecond)
+                if !scriptRunning {
+                    return
+                }
+            }
+            fmt.Fprintf(scriptInfo, "%s ", word)
+        }
+    }
+
+    if scriptRunning {
+        scriptRunning = false
+        time.Sleep(time.Millisecond * 2)
+        printScriptInfo(s)
+    } else {
+        scriptRunning = true
+        go run()
+    }
+    return s
 }
 
 func makeOptionsForm() *tview.Form {
@@ -207,7 +189,7 @@ func makeOptionsForm() *tview.Form {
             SetChangedFunc(checkSelExperimental)
 
     c.SetFocusFunc(func(){
-        go printScriptInfo("Enable experimental backends in picom.\nThis will add dual-kawase blur, which is preferred.\nNote that this uses GLX backend, which doesn't work correctly in legacy hardware.", c)
+        scriptInfoLast = printScriptInfo("Enable experimental backends in picom.\nThis will add dual-kawase blur, which is preferred.\nNote that this uses GLX backend, which doesn't work correctly in legacy hardware.")
     })
 
     c1 := tview.NewCheckbox().
@@ -216,7 +198,7 @@ func makeOptionsForm() *tview.Form {
             SetChangedFunc(checkSelAnimConfirm)
 
     c1.SetFocusFunc(func(){
-        go printScriptInfo("Enable or disable animations in picom", c1)
+        scriptInfoLast = printScriptInfo("Enable or disable animations in picom")
     })
 
     c2 := tview.NewCheckbox().
@@ -225,7 +207,7 @@ func makeOptionsForm() *tview.Form {
             SetChangedFunc(checkSelFadeConfirm)
 
     c2.SetFocusFunc(func(){
-        go printScriptInfo("Enable fading when opening - closing windows.\nWindows will go from transparent to opaque if set.", c2)
+        scriptInfoLast = printScriptInfo("Enable fading when opening - closing windows.\nWindows will go from transparent to opaque if set.")
     })
 
     c3 := tview.NewCheckbox().
@@ -234,7 +216,7 @@ func makeOptionsForm() *tview.Form {
             SetChangedFunc(checkSelFadeNextTag)
 
     c3.SetFocusFunc(func(){
-        go printScriptInfo("Enable fading for incoming tag.\nNew windows that are coming from next tag will go from transparent to opaque.", c3)
+        scriptInfoLast = printScriptInfo("Enable fading for incoming tag.\nNew windows that are coming from next tag will go from transparent to opaque.")
     })
 
     c4 := tview.NewCheckbox().
@@ -243,60 +225,104 @@ func makeOptionsForm() *tview.Form {
             SetChangedFunc(checkSelFadePrevTag)
 
     c4.SetFocusFunc(func(){
-        go printScriptInfo("Enable fading for next tag.\nOld windows that are going out from current tag will go from opaque to transparent.", c4)
+        scriptInfoLast = printScriptInfo("Enable fading for next tag.\nOld windows that are going out from current tag will go from opaque to transparent.")
     })
 
     i1 := tview.NewInputField().
             SetLabel("ANIM SPEED IN TAG :").
-            SetAcceptanceFunc(tview.InputFieldFloat).
+            SetAcceptanceFunc(tview.InputFieldFloatMaxLength(3)).
             SetPlaceholder(picomOpts[_animation_stiffness_in_tag]).
-            SetFieldWidth(3)
-
-    i1.SetFocusFunc(func(){
-        go printScriptInfo("Set animation speed in current tag.\n125 is default. Enter an integer or float number.", c4)
+            SetFieldWidth(len(picomOpts[_animation_stiffness_in_tag]))
+    i1.SetChangedFunc(func(text string){
+        if len(text) > len(picomOpts[_animation_stiffness_in_tag]) {
+            i1.SetFieldWidth(len(text))
+        } else {
+            i1.SetFieldWidth(len(picomOpts[_animation_stiffness_in_tag]))
+        }
     })
 
+    i1.SetFocusFunc(func(){
+        scriptInfoLast = printScriptInfo("Set animation speed for moving or resizing windows in current tag.\nDefault value is [::b]125[::-]. Enter an integer or float number.")
+    })
+
+    i1.SetDoneFunc(func(key tcell.Key){
+        switch key {
+        case tcell.KeyEnter:
+            err := changePicomAttribute(_animation_stiffness_in_tag, i1.GetText())
+
+            if err != nil {
+                confirm.SetText(err.Error()).
+                        SetBackgroundColor(tcell.Color59).
+                        SetTextColor(tcell.ColorRed)
+            } else {
+                confirm.SetText("Animation speed in current tag changed to: [::b]" + i1.GetText()).
+                        SetBackgroundColor(tcell.Color59).
+                        SetTextColor(tcell.ColorLightGreen)
+            }
+            pages.ShowPage("confirm")
+        }
+    })
+
+    i2 := tview.NewInputField().
+            SetLabel("ANIM SPEED ON TAG CHANGE :").
+            SetAcceptanceFunc(tview.InputFieldFloatMaxLength(3)).
+            SetPlaceholder(picomOpts[_animation_stiffness_tag_change]).
+            SetFieldWidth(len(picomOpts[_animation_stiffness_tag_change]))
+
+    i2.SetChangedFunc(func(text string){
+        if len(text) > len(picomOpts[_animation_stiffness_tag_change]) {
+            i2.SetFieldWidth(len(text))
+        } else {
+            i2.SetFieldWidth(len(picomOpts[_animation_stiffness_tag_change]))
+        }
+    })
+
+    i2.SetFocusFunc(func(){
+        scriptInfoLast = printScriptInfo("Set animation speed for windows transitioning between tags.\nDefault value is [::b]90[::-]. Enter an integer or float number.")
+    })
+
+    i2.SetDoneFunc(func(key tcell.Key){
+        switch key {
+        case tcell.KeyEnter:
+            err := changePicomAttribute(_animation_stiffness_tag_change, i2.GetText())
+
+            if err != nil {
+                confirm.SetText(err.Error()).
+                        SetBackgroundColor(tcell.Color59).
+                        SetTextColor(tcell.ColorRed)
+            } else {
+                confirm.SetText("Animation speed between tags changed to: [::b]" + i2.GetText()).
+                        SetBackgroundColor(tcell.Color59).
+                        SetTextColor(tcell.ColorLightGreen)
+            }
+            pages.ShowPage("confirm")
+        }
+    })
 
     return tview.NewForm().
                 SetFieldBackgroundColor(tcell.Color238).
-                SetFieldTextColor(tcell.Color255).
+                SetFieldTextColor(tcell.Color248).
                 SetLabelColor(tcell.Color33).
-                SetItemPadding(2).
+                SetItemPadding(1).
                 AddCheckbox(c).
                 AddCheckbox(c1).
                 AddCheckbox(c2).
                 AddCheckbox(c3).
                 AddCheckbox(c4).
-                AddInputFieldItem(i1)
+                AddInputFieldItem(i1).
+                AddInputFieldItem(i2)
 }
 
-func makeScriptsForm() *tview.Form {
-    bGrub := tview.NewButton(u.POS_GRUB_CHOOSE_THEME).
-                    SetSelectedFunc(buttonSelGrubTheme).
-                    SetLabelColorActivated(tcell.Color238)
-    bSddm := tview.NewButton(u.POS_SDDM_CHOOSE_THEME).
-                    SetSelectedFunc(buttonSelSddmTheme).
-                    SetLabelColorActivated(tcell.Color238)
-    bBar := tview.NewButton(u.POS_MAKE_BAR).
-                    SetSelectedFunc(buttonSelMakeBar).
-                    SetLabelColorActivated(tcell.Color238)
-
-    bGrub.SetFocusFunc(func(){
-        go printScriptInfo(u.ScriptInfo[u.POS_GRUB_CHOOSE_THEME], bGrub)
-    })
-    bSddm.SetFocusFunc(func(){
-        go printScriptInfo(u.ScriptInfo[u.POS_SDDM_CHOOSE_THEME], bSddm)
-    })
-    bBar.SetFocusFunc(func(){
-        go printScriptInfo(u.ScriptInfo[u.POS_MAKE_BAR], bBar)
-    })
+func makeAnimationForm() *tview.Form {
     return tview.NewForm().
-               SetItemPadding(3).
+               SetItemPadding(2).
+               SetLabelColor(tcell.Color111).
                SetFieldBackgroundColor(tcell.Color238).
                SetFieldTextColor(tcell.Color255).
-               AddButtonItem(bGrub).
-               AddButtonItem(bSddm).
-               AddButtonItem(bBar)
+               AddDropDown(makeDropdown(_animation_for_open_window)).
+               AddDropDown(makeDropdown(_animation_for_unmap_window)).
+               AddDropDown(makeDropdown(_animation_for_prev_tag)).
+               AddDropDown(makeDropdown(_animation_for_next_tag))
 }
 
 
@@ -320,7 +346,7 @@ func Picom(a *tview.Application,nextSlide func()) (title string, content tview.P
                 AddText(text, true, tview.AlignCenter, tcell.ColorWhite)
         } else {
             o1 = makeOptionsForm()
-            o2 = makeScriptsForm()
+            o2 = makeAnimationForm()
 
             o1.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
                 if event.Key() == tcell.KeyLeft || event.Key() == tcell.KeyRight {
@@ -331,10 +357,6 @@ func Picom(a *tview.Application,nextSlide func()) (title string, content tview.P
                 return event
             })
 
-            o1.SetFocusFunc(func() {
-                o1.SetFocus(lastFocusIndex)
-            })
-
             o2.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
                 if event.Key() == tcell.KeyLeft || event.Key() == tcell.KeyRight {
                     app.SetFocus(o1)
@@ -342,10 +364,6 @@ func Picom(a *tview.Application,nextSlide func()) (title string, content tview.P
                     return nil
                 }
                 return event
-            })
-
-            o2.SetFocusFunc(func() {
-                o2.SetFocus(lastFocusIndex)
             })
 
             return tview.NewGrid().
@@ -370,8 +388,8 @@ func Picom(a *tview.Application,nextSlide func()) (title string, content tview.P
             AddItem(tview.NewBox(), 0, 3, false).
             AddItem(newPrimitive(""), 0, 9, true).
             AddItem(tview.NewBox(), 0, 3, false), 0, 16, true).
-		AddItem(newPrimitive("Use Tab-Shift+Tab or Up-Down keys to navigate, Left-Right to navigate between columns"), 0, 1, false).
-		AddItem(newPrimitive("Enter to select (type to search, or use arrow keys), Esc to cancel selection"), 0, 1, false)
+		AddItem(newPrimitive("Use Tab or Up-Down keys to navigate, Shift+Tab or Left-Right to navigate between columns"), 0, 1, false).
+		AddItem(newPrimitive("Type to search and Enter to select, Esc to cancel selection"), 0, 1, false)
 
 	pages.AddPage("flex", flex, true, true).
 		AddPage("confirm", confirm, true, false)

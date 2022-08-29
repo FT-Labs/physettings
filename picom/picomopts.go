@@ -36,18 +36,18 @@ var picomOpts = map[string]string {
 }
 
 var animInfo = map[string]string {
-    "fly-in"           : "Windows fly in from random directions to the screen",
-    "maximize"         : "Windows pop from center of the screen to their respective positions",
-    "minimize"         : "Windows minimize from their position to the center of the screen",
-    "slide-in-center"  : "Windows move from upper-center of the screen to their respective positions",
-    "slide-out-center" : "Windows move to the upper-center of the screen",
-    "slide-left"       : "Windows are created from the right-most window position and slide leftwards",
-    "slide-right"      : "Windows are created from the left-most window position and slide rightwards",
-    "slide-down"       : "Windows are moved from the top of the screen and slide downward",
-    "slide-up"         : "Windows are moved from their position to top of the screen",
-    "squeeze"          : "Windows are either closed or created to/from their center y-position (the animation is similar to a blinking eye)",
-    "squeeze-bottom"   : "Similar to squeeze, but the animation starts from bottom-most y-position",
-    "zoom"             : "Windows are either created or destroyed from/to their center (not the screen center)",
+    "fly-in"           : "Windows fly in from random directions to the screen.",
+    "maximize"         : "Windows pop from center of the screen to their respective positions.",
+    "minimize"         : "Windows minimize from their position to the center of the screen.",
+    "slide-in-center"  : "Windows move from upper-center of the screen to their respective positions.",
+    "slide-out-center" : "Windows move to the upper-center of the screen.",
+    "slide-left"       : "Windows are created from the right-most window position and slide leftwards.",
+    "slide-right"      : "Windows are created from the left-most window position and slide rightwards.",
+    "slide-down"       : "Windows are moved from the top of the screen and slide downward.",
+    "slide-up"         : "Windows are moved from their position to top of the screen.",
+    "squeeze"          : "Windows are either closed or created to/from their center y-position (the animation is similar to a blinking eye).",
+    "squeeze-bottom"   : "Similar to squeeze, but the animation starts from bottom-most y-position.",
+    "zoom"             : "Windows are either created or destroyed from/to their center (not the screen center).",
 }
 
 var animOpenOpts = []string{
@@ -57,8 +57,10 @@ var animOpenOpts = []string{
     "slide-left",
     "slide-right",
     "squeeze",
-    "squueze-bottom",
-    "zoom"}
+    "squeeze-bottom",
+    "zoom",
+}
+
 var animCloseOpts = []string{
     "slide-out-center",
     "squeeze",
@@ -87,7 +89,7 @@ var animNextOpts = []string {
     "zoom",
 }
 
-func changePicomAttribute(attribute, value string) {
+func changePicomAttribute(attribute, value string) error {
     picomOpts[attribute] = value
     var cmd string
     if attribute == _fading {
@@ -97,9 +99,7 @@ func changePicomAttribute(attribute, value string) {
     }
     err := exec.Command("/bin/bash", "-c", cmd).Run()
 
-    if err != nil {
-        fmt.Fprintf(os.Stderr, "Error occurred changing attribute")
-    }
+    return err
 }
 
 func readPicomOpts() {
@@ -122,6 +122,27 @@ func readPicomOpts() {
             arr := strings.Split(s, "=")
             if len(arr) > 1 {
                 picomOpts[key] = arr[1]
+            }
+
+            search := func(cur string, arr []string) {
+                for i := 0; i < len(arr); i++ {
+                    if arr[i] == cur {
+                        arr[0], arr[i] = arr[i], arr[0]
+                        break
+                    }
+                }
+            }
+
+            switch key {
+            case _animation_for_open_window:
+                search(arr[1], animOpenOpts)
+            case _animation_for_unmap_window:
+                search(arr[1], animCloseOpts)
+            case _animation_for_next_tag:
+                search(arr[1], animNextOpts)
+            case _animation_for_prev_tag:
+                search(arr[1], animPrevOpts)
+
             }
         }
     }
