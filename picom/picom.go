@@ -266,7 +266,7 @@ func makeOptionsForm() *tview.Form {
     })
 
     i1.SetFocusFunc(func(){
-        scriptInfoLast = printScriptInfo("Set animation speed for moving or resizing windows in current tag.\nDefault value is [::b]125[::-]. Enter an integer or float number.")
+        scriptInfoLast = printScriptInfo("Set animation speed for moving or resizing windows in current tag.\nDefault value is 125. Enter an integer or float number.")
     })
 
     i1.SetDoneFunc(func(key tcell.Key){
@@ -302,7 +302,7 @@ func makeOptionsForm() *tview.Form {
     })
 
     i2.SetFocusFunc(func(){
-        scriptInfoLast = printScriptInfo("Set animation speed for windows transitioning between tags.\nDefault value is [::b]90[::-]. Enter an integer or float number.")
+        scriptInfoLast = printScriptInfo("Set animation speed for windows transitioning between tags.\nDefault value is 90. Enter an integer or float number.")
     })
 
     i2.SetDoneFunc(func(key tcell.Key){
