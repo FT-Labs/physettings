@@ -62,11 +62,17 @@ func checkSelFadePrevTag(checked bool) {
     }
 }
 
-func dropSelRofiColor(selection string, i int) {
-    u.SetRofiColor(selection)
-    confirm.SetText("Rofi colorscheme changed to: " + selection).
-            SetBackgroundColor(tcell.Color59).
-            SetTextColor(tcell.ColorLightGreen)
+func dropSelOpenWindowAnim(selection string, i int) {
+    err := changePicomAttribute(_animation_for_open_window, selection)
+    if err != nil {
+        confirm.SetText(err.Error()).
+                SetBackgroundColor(tcell.Color59).
+                SetTextColor(tcell.ColorRed)
+    } else {
+        confirm.SetText("Open window animation changed to: " + selection).
+                SetBackgroundColor(tcell.Color59).
+                SetTextColor(tcell.ColorLightGreen)
+    }
     pages.ShowPage("confirm")
 }
 
