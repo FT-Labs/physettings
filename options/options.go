@@ -224,9 +224,9 @@ func makeScriptsForm() *tview.Form {
                SetFieldBackgroundColor(tcell.Color238).
                SetFieldTextColor(tcell.Color255).
                SetLabelColor(tcell.Color111).
-               AddButtonItem(bGrub).
-               AddButtonItem(bSddm).
-               AddButtonItem(bBar)
+               AddButtonItem(bGrub, true).
+               AddButtonItem(bSddm, true).
+               AddButtonItem(bBar, true)
 }
 
 

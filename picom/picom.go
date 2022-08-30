@@ -341,8 +341,11 @@ func makeAnimationForm() *tview.Form {
     return tview.NewForm().
                SetItemPadding(2).
                SetLabelColor(tcell.Color111).
+               SetButtonsAlign(tview.AlignCenter).
                SetFieldBackgroundColor(tcell.Color238).
                SetFieldTextColor(tcell.Color255).
+               SetButtonBackgroundColor(tcell.Color238).
+               SetButtonTextColor(tcell.Color255).
                AddDropDown(makeDropdown(_animation_for_open_window)).
                AddDropDown(makeDropdown(_animation_for_unmap_window)).
                AddDropDown(makeDropdown(_animation_for_prev_tag)).
@@ -360,7 +363,7 @@ func makeAnimationForm() *tview.Form {
                                                 SetTextColor(tcell.ColorLightGreen)
                                     }
                                     pages.ShowPage("confirm")
-                                }))
+                                }), false)
 }
 
 
