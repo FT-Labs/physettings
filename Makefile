@@ -18,7 +18,7 @@ VERSION ?= 1.0.0
 build: $(SRC)
 	GOOS=linux GOARCH=amd64 ${GOCMD} build -o ${PROG} main.go
 
-deps:
+deps: $(SRC)
 	${GOCMD} get github.com/FT-Labs/tview@latest
 	${GOCMD} get github.com/gdamore/tcell/v2@latest
 
