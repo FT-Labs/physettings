@@ -1,11 +1,9 @@
-github.com/FT-Labs/tview v0.0.0-20220829010052-fda35efc3fcf h1:SFE25KZtZyHHdcLPnuvdoUs4kazjhFrP9A1U2wCoeEQ=
-github.com/FT-Labs/tview v0.0.0-20220829010052-fda35efc3fcf/go.mod h1:OxQ1yrjgG8Gy9BnIbUYYVXTaeL7/VQcSgtFBsPR13hg=
-github.com/FT-Labs/tview v0.0.0-20220829203610-c58e0803b610 h1:pADFdDeIogboou/V+ok3G/V4k25U1ahaqTWXqCIaS7c=
-github.com/FT-Labs/tview v0.0.0-20220829203610-c58e0803b610/go.mod h1:OxQ1yrjgG8Gy9BnIbUYYVXTaeL7/VQcSgtFBsPR13hg=
+github.com/FT-Labs/tview v0.0.0-20220906205520-bd2c8dcecdb4 h1:hv/hg4Cd4o2ONj9u0NE0gR/8u8gzWbBbWLwt634r/38=
+github.com/FT-Labs/tview v0.0.0-20220906205520-bd2c8dcecdb4/go.mod h1:OxQ1yrjgG8Gy9BnIbUYYVXTaeL7/VQcSgtFBsPR13hg=
 github.com/gdamore/encoding v1.0.0 h1:+7OoQ1Bc6eTm5niUzBa0Ctsh6JbMW6Ra+YNuAtDBdko=
 github.com/gdamore/encoding v1.0.0/go.mod h1:alR0ol34c49FCSBLjhosxzcPHQbf2trDkoo5dl+VrEg=
-github.com/gdamore/tcell/v2 v2.5.2 h1:tKzG29kO9p2V++3oBY2W9zUjYu7IK1MENFeY/BzJSVY=
-github.com/gdamore/tcell/v2 v2.5.2/go.mod h1:wSkrPaXoiIWZqW/g7Px4xc79di6FTcpB8tvaKJ6uGBo=
+github.com/gdamore/tcell/v2 v2.5.3 h1:b9XQrT6QGbgI7JvZOJXFNczOQeIYbo8BfeSMzt2sAV0=
+github.com/gdamore/tcell/v2 v2.5.3/go.mod h1:wSkrPaXoiIWZqW/g7Px4xc79di6FTcpB8tvaKJ6uGBo=
 github.com/lucasb-eyer/go-colorful v1.2.0 h1:1nnpGOrhyZZuNyfu1QjKiUICQ74+3FNCN69Aj6K7nkY=
 github.com/lucasb-eyer/go-colorful v1.2.0/go.mod h1:R4dSotOR9KMtayYi1e77YzuveK+i7ruzyGqttikkLy0=
 github.com/mattn/go-runewidth v0.0.13 h1:lTGmDsbAYt5DmK6OnoV7EuIF1wEIFAcxld6ypU4OSgU=
