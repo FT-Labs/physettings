@@ -272,7 +272,7 @@ func makeOptionsForm() *tview.Form {
     i1.SetDoneFunc(func(key tcell.Key){
         switch key {
         case tcell.KeyEnter:
-            err := changePicomAttribute(_animation_stiffness_in_tag, i1.GetText(), true)
+            err := changePicomAttribute(_animation_stiffness_in_tag, i1.GetText(), false)
 
             if err != nil {
                 confirm.SetText(err.Error()).
@@ -308,7 +308,7 @@ func makeOptionsForm() *tview.Form {
     i2.SetDoneFunc(func(key tcell.Key){
         switch key {
         case tcell.KeyEnter:
-            err := changePicomAttribute(_animation_stiffness_tag_change, i2.GetText(), true)
+            err := changePicomAttribute(_animation_stiffness_tag_change, i2.GetText(), false)
 
             if err != nil {
                 confirm.SetText(err.Error()).
