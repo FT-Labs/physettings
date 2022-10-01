@@ -2,12 +2,13 @@ package options
 
 import (
 	"fmt"
+	"os/exec"
 	"strings"
 	"time"
 
 	u "github.com/FT-Labs/physettings/utils"
-	"github.com/gdamore/tcell/v2"
 	"github.com/FT-Labs/tview"
+	"github.com/gdamore/tcell/v2"
 )
 
 var app *tview.Application
@@ -61,6 +62,9 @@ func buttonSelMakeBar() {
     }
     pages.ShowPage("confirm")
 }
+func buttonSelPdwm() {
+    exec.Command("pdwmc", "-q").Run()
+}
 
 func checkSelShutdownConfirm(checked bool) {
     if checked {
@@ -111,7 +115,7 @@ func makeDropdown(opt string) *tview.DropDown {
     switch opt {
     case u.ROFI_COLOR:
         d := tview.NewDropDown().
-                SetLabel("POWERMENU_COLOR : ").
+                SetLabel("ROFI_COLOR: ").
                 SetOptions(u.RofiColors, dropSelRofiColor).
                 SetCurrentOption(0)
         d.SetFocusFunc(func(){
@@ -209,6 +213,9 @@ func makeScriptsForm() *tview.Form {
     bBar := tview.NewButton(u.POS_MAKE_BAR).
                     SetSelectedFunc(buttonSelMakeBar).
                     SetLabelColorActivated(tcell.Color238)
+    bPdwm := tview.NewButton("pdwm Control Center").
+                    SetSelectedFunc(buttonSelPdwm).
+                    SetLabelColorActivated(tcell.Color238)
 
     bGrub.SetFocusFunc(func(){
         scriptInfoLast = printScriptInfo(u.ScriptInfo[u.POS_GRUB_CHOOSE_THEME])
@@ -219,6 +226,9 @@ func makeScriptsForm() *tview.Form {
     bBar.SetFocusFunc(func(){
         scriptInfoLast = printScriptInfo(u.ScriptInfo[u.POS_MAKE_BAR])
     })
+    bPdwm.SetFocusFunc(func(){
+        scriptInfoLast = printScriptInfo("Change pdwm keybinds, colorscheme, rules, buttons or appearance.\nPlease note that this works only with 'pdwm', phyOS-dwm is not configurable without changing source code.")
+    })
     return tview.NewForm().
                SetItemPadding(3).
                SetFieldBackgroundColor(tcell.Color238).
@@ -226,7 +236,8 @@ func makeScriptsForm() *tview.Form {
                SetLabelColor(tcell.Color111).
                AddButtonItem(bGrub, true).
                AddButtonItem(bSddm, true).
-               AddButtonItem(bBar, true)
+               AddButtonItem(bBar, true).
+               AddButtonItem(bPdwm, true)
 }
 
 

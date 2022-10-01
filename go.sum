@@ -1,5 +1,7 @@
 github.com/FT-Labs/tview v0.0.0-20220906205520-bd2c8dcecdb4 h1:hv/hg4Cd4o2ONj9u0NE0gR/8u8gzWbBbWLwt634r/38=
 github.com/FT-Labs/tview v0.0.0-20220906205520-bd2c8dcecdb4/go.mod h1:OxQ1yrjgG8Gy9BnIbUYYVXTaeL7/VQcSgtFBsPR13hg=
+github.com/FT-Labs/tview v0.0.0-20220910203946-9d459cd52542 h1:3MAxnQIPiAFStGcYh3DGFyD5XcXqfkuPW5S6vvvPwYY=
+github.com/FT-Labs/tview v0.0.0-20220910203946-9d459cd52542/go.mod h1:OxQ1yrjgG8Gy9BnIbUYYVXTaeL7/VQcSgtFBsPR13hg=
 github.com/gdamore/encoding v1.0.0 h1:+7OoQ1Bc6eTm5niUzBa0Ctsh6JbMW6Ra+YNuAtDBdko=
 github.com/gdamore/encoding v1.0.0/go.mod h1:alR0ol34c49FCSBLjhosxzcPHQbf2trDkoo5dl+VrEg=
 github.com/gdamore/tcell/v2 v2.5.3 h1:b9XQrT6QGbgI7JvZOJXFNczOQeIYbo8BfeSMzt2sAV0=
