@@ -20,6 +20,7 @@ const (
     _animation_for_unmap_window     = "animation-for-unmap-window"
     _animation_for_prev_tag         = "animation-for-prev-tag"
     _animation_for_next_tag         = "animation-for-next-tag"
+    _vsync                          = "vsync"
 )
 
 var picomOpts = map[string]string {
@@ -33,6 +34,7 @@ var picomOpts = map[string]string {
     _animation_for_next_tag         : "none",
     _enable_fading_next_tag         : "false",
     _enable_fading_prev_tag         : "false",
+    _vsync                          : "false",
 }
 
 var animInfo = map[string]string {
@@ -111,6 +113,8 @@ func readPicomOpts() {
         var cmd string
         if key == _fading {
             cmd = fmt.Sprintf("grep -w \"%s\" \"%s\" | cut -f1 -d \";\" | tr -d '\"\\n'", "fading =", picomConfPath)
+        } else if key == _vsync {
+            cmd = fmt.Sprintf("grep -w \"%s\" \"%s\" | cut -f1 -d \";\" | tr -d '\"\\n'", "vsync =", picomConfPath)
         } else {
             cmd = fmt.Sprintf("grep -r \"%s\" \"%s\" | cut -f1 -d \";\" | tr -d '\"\\n'", key, picomConfPath)
         }

@@ -38,6 +38,14 @@ func checkSelExperimental(checked bool) {
     }
 }
 
+func checkSelVsync(checked bool) {
+    if checked {
+        changePicomAttribute(_vsync, "true", false)
+    } else {
+        changePicomAttribute(_vsync, "false", false)
+    }
+}
+
 func checkSelFadeConfirm(checked bool) {
     if checked {
         changePicomAttribute(_fading, "true", false)
@@ -216,6 +224,15 @@ func makeOptionsForm() *tview.Form {
         scriptInfoLast = printScriptInfo("Enable experimental backends in picom.\nThis will add dual-kawase blur, which is preferred.\nNote that this uses GLX backend, which doesn't work correctly in legacy hardware.")
     })
 
+    c0 := tview.NewCheckbox().
+            SetLabel("ENABLE VSYNC :").
+            SetChecked(picomOpts[_vsync] == "true").
+            SetChangedFunc(checkSelVsync)
+
+    c.SetFocusFunc(func(){
+        scriptInfoLast = printScriptInfo("Enable Vsync. Recommended if you experience screen tearing.")
+    })
+
     c1 := tview.NewCheckbox().
             SetLabel("ENABLE ANIMATIONS :").
             SetChecked(picomOpts[_animations] == "true").
@@ -329,6 +346,7 @@ func makeOptionsForm() *tview.Form {
                 SetLabelColor(tcell.Color33).
                 SetItemPadding(1).
                 AddCheckbox(c).
+                AddCheckbox(c0).
                 AddCheckbox(c1).
                 AddCheckbox(c2).
                 AddCheckbox(c3).
