@@ -229,7 +229,7 @@ func makeOptionsForm() *tview.Form {
             SetChecked(picomOpts[_vsync] == "true").
             SetChangedFunc(checkSelVsync)
 
-    c.SetFocusFunc(func(){
+    c0.SetFocusFunc(func(){
         scriptInfoLast = printScriptInfo("Enable Vsync. Recommended if you experience screen tearing.")
     })
 
