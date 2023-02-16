@@ -19,7 +19,7 @@ build: $(SRC)
 	GOOS=linux GOARCH=amd64 ${GOCMD} build -o ${PROG} main.go
 
 deps: $(SRC)
-	${GOCMD} get github.com/FT-Labs/tview@latest
+	${GOCMD} get github.com/FT-Labs/tview@9d459cd
 	${GOCMD} get github.com/gdamore/tcell/v2@latest
 
 clean:
